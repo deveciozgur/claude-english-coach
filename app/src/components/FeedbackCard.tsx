@@ -442,8 +442,8 @@ export default function FeedbackCard({ feedback, loading, text, level = 'A1' }) 
             <div className="flex flex-wrap items-center gap-2 text-[13px] text-ink-3">
               Estimated level <LevelBadge level={feedback.estimatedLevel} />
               <span className="ml-auto inline-flex items-center gap-1">
-                {feedback.source === 'claude' ? <Sparkle size={13} /> : <Cpu size={13} />}
-                {feedback.source === 'claude' ? 'Claude' : 'Offline rules'}
+                {feedback.source === 'gemini' ? <Sparkle size={13} /> : <Cpu size={13} />}
+                {feedback.source === 'gemini' ? 'Gemini' : 'Offline rules'}
               </span>
             </div>
             <p className="font-serif text-[17px] leading-snug">{feedback.summary}</p>

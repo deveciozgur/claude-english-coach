@@ -1,0 +1,39 @@
+# Lumos AI English Coach v1.0 (Apache / LiteSpeed shared hosting)
+
+Options -Indexes
+DirectoryIndex index.html
+
+# Settings, coaching rules and data are never served to the browser.
+<FilesMatch "^(\.env.*|config\.php|CLAUDE\.md|.*\.(md|log|bak|tmp))$">
+  <IfModule mod_authz_core.c>
+    Require all denied
+  </IfModule>
+  <IfModule !mod_authz_core.c>
+    Order allow,deny
+    Deny from all
+  </IfModule>
+</FilesMatch>
+RedirectMatch 403 ^/(.*/)?(data|data-seed)(/.*)?$
+
+<IfModule mod_headers.c>
+  Header always set X-Content-Type-Options "nosniff"
+  Header always set X-Frame-Options "DENY"
+  Header always set Referrer-Policy "same-origin"
+  Header always set X-Robots-Tag "noindex, nofollow"
+  <FilesMatch "\.(js|css|woff2?)$">
+    Header set Cache-Control "public, max-age=31536000, immutable"
+  </FilesMatch>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+</IfModule>
+
+# Coach replies stream as Server-Sent Events: keep api.php output uncompressed.
+<IfModule mod_deflate.c>
+  SetEnvIfNoCase Request_URI "api\.php$" no-gzip dont-vary
+</IfModule>
+
+# To force HTTPS, remove the # in front of the next three lines.
+# RewriteEngine On
+# RewriteCond %{HTTPS} !=on
+# RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]

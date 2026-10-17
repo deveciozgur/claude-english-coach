@@ -73,7 +73,7 @@ export default function CoachChat({ llm }) {
         )}
       </header>
 
-      {!llm && <p className="rounded-xl border border-dashed border-line-strong px-4 py-3 text-sm text-ink-2">The AI coach is offline. Add <code className="font-mono">ANTHROPIC_API_KEY</code> to <code className="font-mono">app/.env</code> on the server and restart it. The Studio tasks keep working with offline feedback.</p>}
+      {!llm && <p className="rounded-xl border border-dashed border-line-strong px-4 py-3 text-sm text-ink-2">The AI coach is offline. Add <code className="font-mono">GEMINI_API_KEY</code> to the <code className="font-mono">.env</code> file next to <code className="font-mono">api.php</code>. The Studio tasks keep working with offline feedback.</p>}
 
       <Panel className="flex min-h-[460px] flex-col">
         <div className="flex-1 space-y-6 px-6 py-6" aria-live="polite">

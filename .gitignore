@@ -8,3 +8,5 @@ release/
 *.tsbuildinfo
 next-env.d.ts
 app/data/
+app/out/
+app/hosting-release/

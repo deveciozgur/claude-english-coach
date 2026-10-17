@@ -1,195 +1,118 @@
-# Lumos AI English Coach v1.0: Sunucuya Dağıtım
+# Lumos AI English Coach v1.0: Paylaşımlı Hostinge Kurulum
 
-Uygulama **Next.js 16 (App Router, TypeScript) standalone** olarak derlenir. Sunucuda yalnızca **Node.js** gerekir; Vercel veya başka bir platforma bağımlılık yoktur. Derlenen klasör kendi `node_modules` kopyasını içerir, sunucuda `npm install` çalıştırmana gerek yoktur.
+Node.js, PM2, SSH ya da terminal gerekmez. Sunucunda **PHP 7.4+ (cURL eklentisiyle)** çalışıyorsa, dosyaları FTP ile yükleyip bir `.env` dosyası oluşturman yeterli. cPanel, Plesk ve DirectAdmin gibi panellerin neredeyse hepsinde bu hazır gelir.
 
-## Mimari özeti
+## Nasıl çalışır?
 
-| Katman | Nerede | Not |
+| Parça | Dosyalar | Görevi |
 |---|---|---|
-| Arayüz (React, Tailwind) | `src/components/`, `src/app/page.tsx` | Client component'ler. Dosya sistemine dokunmaz, veriyi `/api/*` üzerinden alır. |
-| Dosya erişimi | `src/lib/server/` | `fs`, `path` ve Markdown ayrıştırma yalnızca burada. Her modül `server-only` ile korunur; istemci paketine girerse build hata verir. |
-| API | `src/app/api/state/*`, `/api/chat`, `/api/feedback`, `/api/auth/*` | Hepsinde `runtime = 'nodejs'` ve `dynamic = 'force-dynamic'` tanımlı. |
-| Kilit | `src/proxy.ts` (Next.js middleware) | `lumos_auth` çerezi olmadan sayfalar `/unlock`'a yönlenir, API çağrıları 401 alır. |
-| Veriler | `data/` | `profile.json`, `vocabulary.md`, `error_ledger.md`, `sessions/`, `CLAUDE.md`. Şemalar değişmedi. |
+| Arayüz | `index.html`, `_next/`, `icon.svg` | Next.js `output: 'export'` ile üretilmiş statik HTML/JS/CSS. Koçluk mantığı (SM-2, alt bant geçişi, hata defteri, oturum özeti) tarayıcıda çalışır. |
+| Sunucu | `api.php`, `config.php` | PIN kontrolü, veri dosyalarını okuma/yazma (`?action=get_state`, `?action=save_state`) ve Gemini bağlantısı (cURL). |
+| Kurallar | `CLAUDE.md` | Gemini'ye sistem talimatı olarak gönderilir. |
+| Veriler | `data/` | `profile.json`, `vocabulary.md`, `error_ledger.md`, `sessions/`. İlk açılışta `data-seed/` içinden otomatik oluşturulur. Şemalar değişmedi. |
 
-## 1. Yerelde derle
+## 1. Paketi al
+
+Hazır paket depoda: **`hosting-release.zip`**. Kendin üretmek istersen:
 
 ```powershell
 cd C:\Users\halil\english-coach\app
 npm ci
-npm run build
+npm run build        # out/ klasörünü derler ve ../hosting-release.zip dosyasını oluşturur
 ```
 
-`npm run build` iki adım çalıştırır:
-1. `next build` derler ve `.next/standalone` klasörünü oluşturur.
-2. `scripts/assemble-standalone.mjs`, Next.js'in standalone'a kendiliğinden koymadığı parçaları içine kopyalar.
-
-Sonuçta **`app/.next/standalone/`** tek başına çalışabilen sunucu klasörüdür:
+Zip'in içeriği:
 
 ```
-.next/standalone/
-├── server.js              # Next.js sunucusu (node server.js)
-├── .next/                 # derlenmiş sunucu kodu
-│   └── static/            # ← .next/static buraya kopyalandı (JS/CSS)
-├── public/                # ← public/ buraya kopyalandı (robots.txt)
-├── node_modules/          # yalnızca çalışma zamanı paketleri
-├── data/                  # ← koç dosyalarının ilk kopyası (yalnızca yoksa oluşturulur)
-├── package.json
-├── ecosystem.config.cjs   # PM2 ayarı
-└── .env.example           # ayar şablonu
+index.html  404.html  _next/  icon.svg  robots.txt  *.txt   ← statik arayüz
+api.php  config.php                                       ← sunucu tarafı
+.htaccess                                                 ← gizli dosyaları korur (gizli dosya!)
+.env.example                                              ← ayar şablonu (gizli dosya!)
+CLAUDE.md                                                 ← koçluk kuralları
+data-seed/                                                ← ilk açılış için verilerin
+KURULUM.txt                                               ← kısa kurulum notu
 ```
 
-## 2. Sunucuya kopyalanacaklar
+## 2. FTP ile yükle
 
-`.next/standalone/` klasörünün **içindekileri** sunucuda web kökünün dışındaki bir klasöre yükle, örneğin `/var/www/lumos` ya da `/home/KULLANICI/lumos`.
+1. Zip'i bilgisayarında aç.
+2. İçindeki **her şeyi** sitenin klasörüne yükle. Bu klasör `public_html/` ya da alt alan adının klasörü (örneğin `public_html/coach/` veya `coach.ozgurdeveci.com` için panelin oluşturduğu klasör) olabilir.
+3. FTP programında **gizli dosyaları göster** seçeneğini aç. `.htaccess` ve `.env.example` noktayla başladığı için gizlidir ve yüklenmeleri gerekir.
 
-Elle birleştirmek istersen dört parça şöyle eşleşir:
+> Uygulama alan adının köküne göre derlendi. En kolayı bir alt alan adı kullanmak (`coach.ozgurdeveci.com`). Bir alt klasörde (örneğin `ozgurdeveci.com/coach`) çalıştırmak istersen paketi `BASE_PATH=/coach npm run build` komutuyla yeniden üret.
 
-| Yereldeki kaynak | Sunucudaki hedef |
-|---|---|
-| `app/.next/standalone/*` | `/var/www/lumos/` |
-| `app/.next/static/` | `/var/www/lumos/.next/static/` |
-| `app/public/` | `/var/www/lumos/public/` |
-| `english-coach/` kökündeki `profile.json`, `vocabulary.md`, `error_ledger.md`, `CLAUDE.md`, `sessions/` | `/var/www/lumos/data/` |
+## 3. `.env` dosyasını oluştur
 
-> Gizli dosyalar (`.next`, `.env.example`) FTP istemcisinde gizli olabilir; "gizli dosyaları göster" seçeneğini aç.
-
-## 3. `.env` dosyası
-
-`server.js` ile aynı klasörde `.env` oluştur (`.env.example`'ı kopyala) ve `chmod 600 .env` ile koru:
+Panelin **Dosya Yöneticisi** ile `.env.example` dosyasını kopyala, adını `.env` yap ve düzenle:
 
 ```dotenv
-# Zorunlu: kilit ekranının istediği ana PIN / şifre (en az 8 karakter)
 APP_SECRET_PIN=buraya-guclu-bir-pin
-
-# Önerilir: lumos_auth çerezini imzalayan uzun rastgele anahtar
-# Üret: node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"
-APP_SESSION_SECRET=
-
-# İsteğe bağlı: Coach sohbeti ve Claude geri bildirimi (yoksa çevrimdışı geri bildirim çalışır)
-ANTHROPIC_API_KEY=
-COACH_MODEL=claude-opus-5-5
-
-# Node sunucusunun portu (Nginx buraya yönlendirir)
-PORT=3001
-
-# Veri klasörü (server.js'e göre)
-COACH_DATA_DIR=./data
+APP_SESSION_SECRET=uzun-rastgele-bir-metin-4f9a1c...
+GEMINI_API_KEY=AIza...
+GEMINI_MODEL=gemini-flash-latest
+DATA_DIR=data
 ```
 
-- **APP_SECRET_PIN** yoksa üretim sunucusu tüm isteklere 503 döner ve açık kalmaz.
-- **COACH_MODEL:** Varsayılan `claude-opus-5-5`. İstekte geçen `claude-3-5-sonnet-20241022`, Anthropic tarafından kullanımdan kaldırıldı ve artık yanıt vermiyor. Bu yüzden onu varsayılan yapmadım; model değiştirmek için bu değişkeni kullan.
-- `PORT` ve `HOSTNAME` değerlerini PM2 dosyası da verir. İkisi birden tanımlıysa PM2'deki değer geçerli olur.
+| Değişken | Zorunlu mu | Açıklama |
+|---|---|---|
+| `APP_SECRET_PIN` | **Evet** | Kilit ekranının istediği PIN/şifre. Boşsa `api.php` hiçbir isteğe yanıt vermez. |
+| `APP_SESSION_SECRET` | Önerilir | Giriş çerezini imzalar. Değiştirirsen açık oturumların hepsi kapanır. |
+| `GEMINI_API_KEY` | İsteğe bağlı | [Google AI Studio](https://aistudio.google.com/apikey) anahtarı. Coach sohbetini ve AI geri bildirimini açar; yoksa çevrimdışı geri bildirim çalışır. |
+| `GEMINI_MODEL` | İsteğe bağlı | Varsayılan `gemini-flash-latest`. |
+| `DATA_DIR` | İsteğe bağlı | Veri klasörü. `api.php`'ye göre göreli ya da mutlak yol. |
 
-## 4. PM2 ile başlat
+**Model hakkında:** `gemini-1.5-flash` Google tarafından kapatıldı ve artık yanıt vermiyor. Bu yüzden varsayılan değer, Google'ın her zaman güncel Flash modelini gösteren `gemini-flash-latest` takma adı. Belirli bir model istersen `GEMINI_MODEL` değerini değiştir. Geçersiz bir model adı girersen arayüz bunu açıkça söyler.
 
-```bash
-cd /var/www/lumos
-npm install -g pm2                 # bir kez
-pm2 start ecosystem.config.cjs     # süreç adı: lumos-coach (PORT 3001, HOSTNAME 127.0.0.1)
-pm2 save
-pm2 startup                        # yeniden açılışta otomatik başlat (çıkan komutu çalıştır)
+**Daha güvenli yerleşim (önerilir):** `.env` dosyasını `public_html`'in **bir üst klasörüne** koyabilirsin. `config.php` orayı da arar. İstersen `DATA_DIR=/home/KULLANICI/lumos-data` ile verileri de web kökünün dışına taşıyabilirsin.
+
+## 4. Siteyi aç
+
+1. `https://coach.ozgurdeveci.com` adresine git ve PIN'ini gir.
+2. İlk istekte `data/` klasörü `data-seed/` içinden otomatik oluşur ve korunur.
+3. Oturum 30 gün açık kalır. Sağ üstteki kilit simgesiyle kapatabilirsin.
+
+Klasör izin hatası alırsan Dosya Yöneticisi'nde site klasörüne yazma izni ver (genelde 755), ya da `data/` klasörünü kendin oluştur.
+
+## 5. Güvenlik kontrolü (önemli)
+
+Kurulumdan sonra tarayıcıda şu adresleri aç. Hepsi **403 Forbidden** (veya 404) vermeli:
+
+```
+https://coach.ozgurdeveci.com/.env
+https://coach.ozgurdeveci.com/config.php
+https://coach.ozgurdeveci.com/CLAUDE.md
+https://coach.ozgurdeveci.com/data/profile.json
+https://coach.ozgurdeveci.com/data-seed/profile.json
 ```
 
-Ecosystem dosyası olmadan tek satır:
+Bu koruma `.htaccess` ile sağlanır (Apache ve LiteSpeed). Sunucun yalnızca **Nginx** kullanıyorsa `.htaccess` okunmaz. O durumda `.env` dosyasını ve `data/` klasörünü web kökünün dışına taşı (3. adımdaki "daha güvenli yerleşim").
 
-```bash
-cd /var/www/lumos
-NODE_ENV=production PORT=3001 HOSTNAME=127.0.0.1 pm2 start server.js --name lumos-coach
-```
+Diğer önlemler:
+- **PIN kontrolü:** PIN sunucuda `hash_equals` ile sabit sürede karşılaştırılır.
+- **Oturum çerezi:** Doğru PIN, imzalı (HMAC-SHA256), `HttpOnly` ve `SameSite=Strict` bir `lumos_auth` çerezi oluşturur; HTTPS'te `Secure` işaretlenir.
+- **Deneme sınırı:** Aynı IP'den 5 yanlış PIN o IP'yi 15 dakika kilitler. Tüm IP'lerden toplam 30 yanlış deneme herkesi 15 dakika kilitler. IP olarak `REMOTE_ADDR` kullanılır; istemci bunu başlıklarla taklit edemez.
+- **Kaydetme:** `save_state` yalnızca `profile.json`, `vocabulary.md`, `error_ledger.md` ve `sessions/YYYY-MM-DD.md` dosyalarını yazar. `profile.json` geçerli JSON değilse reddedilir.
+- **Başka sitelerden gelen istekler:** POST istekleri `X-Requested-With: lumos` başlığı ister; bu, başka sitelerden gönderilen formları engeller.
+- **Çoklu cihaz:** Her kayıtta bir sürüm numarası kontrol edilir. İki cihaz aynı anda kaydederse biri 409 alır ve güncel veriyi yükleyip tekrar dener; veriler üst üste yazılmaz.
 
-> **HOSTNAME önemli:** Next.js standalone sunucusu `HOSTNAME` değişkenine bağlanır. Bazı sunucularda bu değişken makine adıyla dolu gelir. `127.0.0.1` (Nginx arkasında) ya da `0.0.0.0` olarak açıkça ver.
->
-> **Tek süreç:** `instances: 1` olarak bırak. Dosya yazımları süreç içi bir kuyruktan geçer; cluster modu veri bozabilir.
+## 6. Güncelleme
 
-Kontrol:
+1. Yeni `hosting-release.zip` dosyasını aç.
+2. İçindekileri FTP ile yükle, **ama `.env` dosyasının ve `data/` klasörünün üzerine yazma**. Zip'te `data/` yok, sadece `data-seed/` var. Bu yüzden normal bir yükleme ilerlemeni zaten silmez.
 
-```bash
-pm2 logs lumos-coach               # "Ready" satırını görmelisin
-curl -s http://127.0.0.1:3001/api/auth/status   # {"required":true,"authenticated":false}
-```
+## 7. Yedekleme
 
-## 5. Nginx reverse proxy ve SSL
+- **Otomatik:** `api.php` her gün ilk kayıttan önce `data/backups/YYYY-MM-DD/` altına bir kopya alır ve son 14 günü saklar.
+- **Elle:** Dosya Yöneticisi'nden `data/` klasörünü zip'leyip indir.
 
-Uygulama alan adının köküne göre derlenir. Bir alt alan adı kullan, örneğin **`coach.ozgurdeveci.com`**. `www.ozgurdeveci.com` ana siten olarak kalır.
-
-`/etc/nginx/sites-available/lumos`:
-
-```nginx
-server {
-    listen 80;
-    server_name coach.ozgurdeveci.com;
-    return 301 https://$host$request_uri;
-}
-
-server {
-    listen 443 ssl http2;
-    server_name coach.ozgurdeveci.com;
-
-    ssl_certificate     /etc/letsencrypt/live/coach.ozgurdeveci.com/fullchain.pem;
-    ssl_certificate_key /etc/letsencrypt/live/coach.ozgurdeveci.com/privkey.pem;
-    add_header Strict-Transport-Security "max-age=31536000" always;
-
-    client_max_body_size 2m;
-
-    # Derlenmiş JS/CSS: içerik özetli dosya adları, uzun süre önbelleklenebilir
-    location /_next/static/ {
-        proxy_pass http://127.0.0.1:3001;
-        add_header Cache-Control "public, max-age=31536000, immutable";
-    }
-
-    location / {
-        proxy_pass http://127.0.0.1:3001;
-        proxy_http_version 1.1;
-        proxy_set_header Host $host;
-        proxy_set_header X-Real-IP $remote_addr;          # PIN deneme sınırı bu adresi kullanır
-        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
-        proxy_set_header X-Forwarded-Proto $scheme;       # çerez HTTPS'te "Secure" olur
-        proxy_buffering off;                              # Coach yanıtları akarak gelsin (SSE)
-        proxy_read_timeout 300s;
-    }
-}
-```
-
-```bash
-sudo ln -s /etc/nginx/sites-available/lumos /etc/nginx/sites-enabled/
-sudo certbot --nginx -d coach.ozgurdeveci.com     # Let's Encrypt sertifikası
-sudo nginx -t && sudo systemctl reload nginx
-```
-
-Panel tabanlı hostingde (cPanel/Plesk) Node.js uygulaması olarak **Application startup file: `server.js`** seç. Ortam değişkenlerini panelden gir ve SSL'i AutoSSL ile aç.
-
-## 6. Güvenlik
-
-- **PIN kontrolü:** PIN sunucuda `/api/auth/verify` ile `APP_SECRET_PIN`'e karşı sabit sürede karşılaştırılır.
-- **Oturum çerezi:** Başarılı girişte `lumos_auth` çerezi oluşur: HMAC-SHA256 imzalı, `HttpOnly`, `SameSite=Strict`, HTTPS'te `Secure`, 30 gün geçerli.
-- **Kilit:** `src/proxy.ts` her sayfa ve API isteğinde çerezi doğrular. Yalnızca `/unlock` ve `/api/auth/*` açıktır.
-- **Deneme sınırı:** Aynı adresten 5 yanlış PIN o adresi 15 dakika kilitler. Tüm adreslerden toplam 30 yanlış deneme, sahte IP ile yapılan denemelere karşı herkesi 15 dakika kilitler.
-- **Çıkış:** `APP_SECRET_PIN` veya `APP_SESSION_SECRET` değişince açık oturumların hepsi kapanır.
-- **Başlıklar:** Sayfalar `noindex` ve `X-Frame-Options: DENY` ile sunulur.
-
-## 7. Güncelleme
-
-1. Yerelde `git pull` ve `npm run build` çalıştır.
-2. `.next/standalone/` içeriğini sunucuya yükle, ama **`data/` ve `.env` dosyalarını atla**. Bunlar sunucudaki ilerlemendir.
-3. `pm2 restart lumos-coach`
-
-## 8. Yedekleme
-
-```bash
-tar -czf ~/lumos-backup-$(date +%F).tar.gz -C /var/www/lumos data
-```
-
-Günlük yedek için: `crontab -e` → `15 3 * * * tar -czf ~/lumos-backup-$(date +\%F).tar.gz -C /var/www/lumos data`
-
-## 9. Sorun giderme
+## 8. Sorun giderme
 
 | Belirti | Çözüm |
 |---|---|
-| Her sayfa "APP_SECRET_PIN is not set" diyor | `.env` dosyasını `server.js` ile aynı klasöre koy, `pm2 restart lumos-coach`. |
-| `502 Bad Gateway` | `pm2 logs lumos-coach`: süreç çalışıyor mu, `PORT` Nginx'tekiyle aynı mı? |
-| Sunucu yalnızca makine adında dinliyor | `HOSTNAME=127.0.0.1` ver (ecosystem dosyasında hazır). |
-| Stil/JS yüklenmiyor (404 `/_next/static`) | `.next/static` klasörü `server.js`'in yanındaki `.next/` içine kopyalanmamış. |
-| Coach yanıtı bir anda geliyor | Nginx'te `proxy_buffering off;` eksik. |
-| Veriler kaydedilmiyor | Node sürecinin kullanıcısı `data/` klasörüne yazabilmeli: `chown -R KULLANICI data`. |
-| "Offline feedback" yazıyor | `ANTHROPIC_API_KEY` boş; ekle ve yeniden başlat. |
+| "Lumos cannot reach its data" ve "APP_SECRET_PIN is not set" | `.env` dosyası yok ya da adı yanlış (`.env.txt` olmamalı). |
+| "api.php did not answer with JSON" | PHP kapalı ya da sürümü çok eski. Panelden PHP 7.4 veya üstünü seç. |
+| "Cannot create the data folder" | Site klasörüne yazma izni ver ya da `data/` klasörünü elle oluştur (755). |
+| Coach "Gemini rejected the API key" diyor | `GEMINI_API_KEY` yanlış ya da bu anahtarda Gemini API kapalı. |
+| Coach "model was not found" diyor | `GEMINI_MODEL` değerini düzelt (örneğin `gemini-flash-latest`). |
+| Coach yanıtı bir anda geliyor | Host çıktıyı tamponluyor. Yine çalışır, sadece akış efekti olmaz. |
+| Header'da "Offline feedback" yazıyor | `GEMINI_API_KEY` boş. Çevrimdışı geri bildirim yine çalışır. |

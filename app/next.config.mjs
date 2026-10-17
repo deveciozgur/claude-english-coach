@@ -1,24 +1,12 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Self-contained server in .next/standalone (node server.js), no external platform needed.
-  output: 'standalone',
+  // Plain HTML/JS/CSS in out/, served by any web host; api.php does the server work.
+  output: 'export',
+  // Build for a sub-folder (e.g. /coach) with BASE_PATH=/coach npm run build; default is the domain root.
+  basePath: process.env.BASE_PATH || '',
+  images: { unoptimized: true },
   poweredByHeader: false,
   reactStrictMode: true,
-  // The learner's files are read at runtime from COACH_DATA_DIR / data/, never bundled.
-  outputFileTracingExcludes: { '*': ['./data/**'] },
-  async headers() {
-    return [
-      {
-        source: '/:path*',
-        headers: [
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'DENY' },
-          { key: 'Referrer-Policy', value: 'same-origin' },
-          { key: 'X-Robots-Tag', value: 'noindex, nofollow' },
-        ],
-      },
-    ];
-  },
 };
 
 export default nextConfig;
