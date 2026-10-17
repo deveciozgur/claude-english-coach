@@ -71,3 +71,12 @@ Structure your feedback turns strictly as follows:
 - **Vocabulary Vault (`vocabulary.md`)**: Append newly practiced words: `Date | Word | Target Upgrade | Interval Stage | Mastered?`.
 - **Error Ledger (`error_ledger.md`)**: Log repeated syntax errors; remove only when used accurately 3 sessions in a row.
 - **Session Logs (`sessions/YYYY-MM-DD.md`)**: Save a 5-line summary at the end of each session.
+
+---
+
+## 6. App Compatibility (keep these formats)
+The Apex web app (`app/`) reads and writes the same files. When editing them by hand, keep the app's formats so nothing breaks:
+- **`vocabulary.md`**: keep the full SM-2 header: `Date | Original | Upgraded | Interval Stage | Mastered? | Next Review | Ease Factor | Repetitions | CEFR | Meaning (TR) | Example`. "Word" = Original, "Target Upgrade" = Upgraded. New words start at Interval Stage `1d`, Ease Factor `2.50`, Repetitions `0`, Next Review = tomorrow.
+- **`error_ledger.md`**: keep the Active table (`# | Category | Error (before) | Correct (after) | Rule / Note | Count | First Seen | Last Seen | Correct Streak | Last Correct`) and the Resolved table (`# | Category | Error | Correct | Resolved On`). After 3 accurate sessions, move the row to Resolved instead of deleting it.
+- **`profile.json`**: keep the top-level keys `overall_cefr`, `sub_band`, `target_cefr`, `skills`, `skill_bands`, `can_do_mastered`, `gamification` (`streak_days`, `xp_total`, `confidence_index`, ...), `srs_queue`, `interests`, `progress`, `stats`, `metrics`, `diagnostic`, `history`. Update values; do not rename or remove keys.
+- **`sessions/YYYY-MM-DD.md`**: put the 5-line summary under `## Session Summary` (Practice, Scores, CEFR, Polish, Next), above `## Activity Log`.
