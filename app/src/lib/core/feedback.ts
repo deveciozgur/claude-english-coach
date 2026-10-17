@@ -4,6 +4,7 @@
 
 import { heuristicFeedback, speakingMetrics } from './heuristics.ts';
 import { readErrors, readProfile } from './store.ts';
+import { bandStatus, curriculumState, getBand } from './curriculum.ts';
 
 /** Sends a prompt and a JSON schema to the AI endpoint; resolves with the model's JSON text. */
 export type AskJson = (req: { prompt: string; schema: unknown }) => Promise<{ text: string; model?: string }>;
@@ -58,7 +59,7 @@ const FEEDBACK_SCHEMA = {
   },
 };
 
-function buildPrompt({ mode, text, level, task, profile, topErrors }) {
+function buildPrompt({ mode, text, level, task, profile, topErrors, canDos = [] }) {
   return [
     `<learner_profile>\n${JSON.stringify({ skill_bands: profile.skill_bands, overall: profile.sub_band, target: profile.target_cefr, interests: profile.interests, weaknesses: profile.metrics?.weaknesses ?? [] })}\n</learner_profile>`,
     topErrors.length ? `<recurring_errors>\n${topErrors.map((e) => `- [${e.category}] "${e.before}" → "${e.after}" (×${e.count})`).join('\n')}\n</recurring_errors>` : '',
@@ -80,6 +81,10 @@ function buildPrompt({ mode, text, level, task, profile, topErrors }) {
       '- pronunciation: up to 5 words from the learner text that a Turkish speaker may mispronounce, with IPA and a one-line tip.',
       mode === 'speaking' ? '- This is a speech-to-text transcript: ignore punctuation and capitalisation, and judge spoken grammar, collocations and fluency.' : '',
       '- If a recurring error appears again, list it first.',
+      canDos.length
+        ? `- can_do_ids: list the ids of the Can-Do statements below that this response clearly and successfully demonstrates (task achieved, meaning clear). Be strict: if unsure, leave it out. Empty list if none.\n<curriculum_can_dos band="${profile.curriculum?.band ?? profile.sub_band}">\n${canDos.map((c) => `${c.id}: ${c.text}`).join('\n')}\n</curriculum_can_dos>`
+        : '',
+      task.grammarFocus ? `- This is focused practice on "${task.grammarFocus}": comment on how well it was used.` : '',
     ].join('\n'),
   ]
     .filter(Boolean)
@@ -123,8 +128,18 @@ export async function generateFeedback(input, ask: AskJson | null) {
 
   try {
     const [profile, errors] = await Promise.all([readProfile(), readErrors()]);
-    const reply = await ask({ prompt: buildPrompt({ ...input, task: input.task ?? {}, profile, topErrors: errors.active.slice(0, 5) }), schema: toGeminiSchema(FEEDBACK_SCHEMA) });
-    const data = normalizeFeedback(JSON.parse(reply.text));
+    // Open Can-Dos of the active curriculum band for this skill: the feedback confirms which were demonstrated.
+    const band = curriculumState(profile).band;
+    const canDos = getBand(band) ? bandStatus(profile, band).filter((c) => c.skill === mode && !c.mastered) : [];
+    const schema: any = structuredClone(FEEDBACK_SCHEMA);
+    if (canDos.length) {
+      schema.properties.can_do_ids = { type: 'array', description: 'Ids of the listed Can-Do statements this response clearly demonstrates', items: { type: 'string', enum: canDos.map((c) => c.id) } };
+      schema.required.push('can_do_ids');
+    }
+    const reply = await ask({ prompt: buildPrompt({ ...input, task: input.task ?? {}, profile, topErrors: errors.active.slice(0, 5), canDos }), schema: toGeminiSchema(schema) });
+    const data: any = normalizeFeedback(JSON.parse(reply.text));
+    // Only ids we offered count; without the field the activity falls back to the offline rule.
+    data.can_do_ids = canDos.length && Array.isArray(data.can_do_ids) ? data.can_do_ids.filter((id) => canDos.some((c) => c.id === id)) : undefined;
     const result: any = { source: 'gemini', model: reply.model, ...data, strength: data.strengths[0] ?? '' };
     if (mode === 'speaking') result.speaking = { ...speakingMetrics(text, durationSec), ipa: data.pronunciation };
     return result;

@@ -22,7 +22,10 @@ export function normalizeProfile(raw) {
     skill_bands[s] = BANDS.includes(band) && bandLevel(band) === lvl ? band : firstBand(lvl);
     skills[s] = bandLevel(skill_bands[s]);
   }
-  const sub_band = overallBand(skill_bands);
+  // The curriculum band (all Can-Dos of the previous band mastered) can lift the overall sub-band.
+  const curBand = BANDS.includes(p.curriculum?.band) ? p.curriculum.band : null;
+  const skillsBand = overallBand(skill_bands);
+  const sub_band = curBand && BANDS.indexOf(curBand) > BANDS.indexOf(skillsBand) ? curBand : skillsBand;
 
   const hadPractice = (p.history ?? []).some((h) => h.event === 'activity' || h.event === 'review');
   const g = { ...(p.gamification ?? {}) };

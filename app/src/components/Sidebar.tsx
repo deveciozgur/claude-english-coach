@@ -1,5 +1,6 @@
 'use client';
 
+import { ALL_CAN_DOS, canDoById } from '@/lib/core/curriculum';
 import { useEffect, useState } from 'react';
 import { motion } from 'motion/react';
 import { Check, Vault as VaultIcon } from '@phosphor-icons/react';
@@ -101,7 +102,7 @@ function StatGrid({ profile, vault, compact = false }) {
       ? []
       : [
           { label: 'Güven endeksi', value: g.confidence_index ?? 80 },
-          { label: 'Can-Do', value: profile.can_do_mastered.length, unit: '/ 72' },
+          { label: 'Can-Do', value: profile.can_do_mastered.filter((c) => canDoById(c.id)).length, unit: `/ ${ALL_CAN_DOS.length}` },
         ]),
   ];
   return (

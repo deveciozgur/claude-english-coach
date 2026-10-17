@@ -70,6 +70,9 @@ define('SEED_DIR', __DIR__ . '/data-seed');
 // build time, so no .md file has to sit in the web root), or CLAUDE.md next to this file as a fallback.
 define('COACH_RULES_FILE', is_file(__DIR__ . '/rules.php') ? __DIR__ . '/rules.php' : __DIR__ . '/CLAUDE.md');
 
+// The Master English Curriculum (A1.1-C2.2): injected into Gemini's system instruction for the active band.
+define('CURRICULUM_FILE', __DIR__ . '/curriculum.json');
+
 define('SESSION_DAYS', 30);
 define('MAX_FAILS', 5);          // wrong PINs from one address before it is locked
 define('GLOBAL_MAX_FAILS', 30);  // wrong PINs from all addresses together before everyone is locked

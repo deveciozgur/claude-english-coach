@@ -248,6 +248,77 @@ function coach_rules(): string
     return $rules !== '' ? $rules : 'You are Lumos AI English Coach, an elite English coach and CEFR assessor.';
 }
 
+/** How complex Gemini's own English should be at each level (Krashen i+1: the band level, one notch up). */
+const LEVEL_LANGUAGE = [
+    'A1' => 'Use very short, simple sentences (5-10 words), present simple and "be", the most common words, no relative clauses, no idioms, no phrasal verbs. Add a short Turkish gloss in brackets for any key word that may be new.',
+    'A2' => 'Use short sentences, past simple and "going to", basic connectors (and, but, because, so). Avoid complex subordinate clauses and idioms. Gloss rare words in Turkish.',
+    'B1' => 'Use clear, everyday English with common connectors (although, however), present perfect and first/second conditionals. Explain idioms if you use any.',
+    'B2' => 'Use natural, varied English: phrasal verbs, some idioms, contrast and concession, modals of speculation. Keep it clear.',
+    'C1' => 'Answer with nuanced, idiomatic, sophisticated English: inversion, cleft sentences, hedging, precise collocations. Do not simplify.',
+    'C2' => 'Answer as an articulate native speaker: stylistic range, irony and understatement where natural, rhetorical devices, precise connotation.',
+];
+
+/** The active band, its targets and the next band's structures, from profile.json + curriculum.json. */
+function curriculum_context(): string
+{
+    $cur = is_readable(CURRICULUM_FILE) ? json_decode((string) file_get_contents(CURRICULUM_FILE), true) : null;
+    $profile = json_decode((string) @file_get_contents(DATA_DIR . '/profile.json'), true) ?: [];
+    if (!is_array($cur)) {
+        return '';
+    }
+    $bands = [];
+    foreach ($cur['levels'] ?? [] as $level) {
+        foreach ($level['sub_bands'] ?? [] as $b) {
+            $bands[] = $b;
+        }
+    }
+    $ids = array_column($bands, 'id');
+    $active = $profile['curriculum']['band'] ?? $profile['sub_band'] ?? 'A1.1';
+    $sub = $profile['sub_band'] ?? $active;
+    if (array_search($sub, $ids, true) > array_search($active, $ids, true)) {
+        $active = $sub;
+    }
+    $i = array_search($active, $ids, true);
+    if ($i === false) {
+        $i = 0;
+        $active = $ids[0] ?? 'A1.1';
+    }
+    $band = $bands[$i];
+    $next = $bands[min($i + 1, count($bands) - 1)];
+    $level = substr($active, 0, 2);
+    $mastered = array_column($profile['can_do_mastered'] ?? [], 'id');
+    $evidence = $profile['curriculum']['evidence'] ?? [];
+
+    $lines = [];
+    $lines[] = '## Curriculum context (Lumos Master English Curriculum)';
+    $lines[] = 'Learner: overall CEFR ' . ($profile['overall_cefr'] ?? $level) . ', active sub-band ' . $active . ', target ' . ($profile['target_cefr'] ?? 'C2') . '.';
+    $lines[] = 'Band goal: ' . ($band['goal'] ?? '');
+    $lines[] = 'Your own English (i+1): ' . (LEVEL_LANGUAGE[$level] ?? LEVEL_LANGUAGE['B1']) . ' Now and then use one structure from ' . $next['id'] . ' so the learner meets it in context.';
+    $lines[] = 'Grammar targets of ' . $active . ': ' . implode(' | ', array_map(function ($g) {
+        return $g['title'] . ' (e.g. ' . $g['example'] . ')';
+    }, $band['grammar_targets'] ?? []));
+    $lines[] = 'Lexical domains of ' . $active . ': ' . implode(' | ', array_map(function ($d) {
+        return $d['title'] . ': ' . implode(', ', array_column($d['items'], 'word'));
+    }, $band['lexical_domains'] ?? []));
+    $lines[] = 'Can-Do targets of ' . $active . ':';
+    foreach ($band['can_do_statements'] ?? [] as $c) {
+        $state = in_array($c['id'], $mastered, true) ? 'mastered' : (min(3, (int) ($evidence[$c['id']]['count'] ?? 0)) . '/3');
+        $lines[] = '- ' . $c['id'] . ' [' . $c['skill'] . ', ' . $state . ']: ' . $c['text'];
+    }
+    $lines[] = 'Turkish L1 interference to watch at this band: ' . implode(' | ', array_map(function ($a) {
+        return '"' . $a['wrong'] . '" -> "' . $a['right'] . '"';
+    }, $band['l1_interference_alerts'] ?? []));
+    $lines[] = 'Polish rule: every Polish suggestion (feedback or chat) should move the learner toward ' . $next['id'] . '. Prefer these structures and words: '
+        . implode('; ', array_column($next['grammar_targets'] ?? [], 'title')) . '; '
+        . implode(', ', array_slice(array_merge(...array_map(function ($d) {
+            return array_column($d['items'], 'word');
+        }, $next['lexical_domains'] ?? [[]])), 0, 8)) . '.';
+    $lines[] = 'Speaking scenarios available at this band (offer one when the learner wants practice): ' . implode(' | ', array_map(function ($s) {
+        return $s['title'] . ' (' . $s['type'] . ')';
+    }, $band['speaking_scenarios'] ?? []));
+    return implode("\n", $lines);
+}
+
 function gemini_url(string $method, bool $sse = false): string
 {
     return GEMINI_BASE_URL . '/models/' . rawurlencode(GEMINI_MODEL) . ':' . $method . ($sse ? '?alt=sse' : '');
@@ -421,7 +492,7 @@ switch ($action) {
             fail('prompt is required', 400);
         }
         $payload = [
-            'systemInstruction' => ['parts' => [['text' => coach_rules()]]],
+            'systemInstruction' => ['parts' => [['text' => coach_rules() . "\n\n---\n" . curriculum_context()]]],
             'contents' => [['role' => 'user', 'parts' => [['text' => $prompt]]]],
             'generationConfig' => ['responseMimeType' => 'application/json', 'temperature' => 0.4, 'maxOutputTokens' => 8192],
         ];
@@ -464,7 +535,7 @@ switch ($action) {
             fail('messages must end with a user message', 400);
         }
         $context = is_string($req['context'] ?? null) ? mb_substr($req['context'], 0, 8000) : '';
-        $system = coach_rules() . "\n\n---\n## Current learner state (from the files on the server)\n```json\n$context\n```\n"
+        $system = coach_rules() . "\n\n---\n" . curriculum_context() . "\n\n---\n## Current learner state (from the files on the server)\n```json\n$context\n```\n"
             . 'This is a chat in the Lumos web app. The app saves tasks, warm-up reviews and scores to the files itself; '
             . "in this chat, coach and practise. Answer in English at the learner's level; add short Turkish help only when it unblocks them.";
 

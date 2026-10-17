@@ -4,7 +4,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { motion } from 'motion/react';
 import { MagnifyingGlass, BookmarkSimple, MagicWand, Plus, Checks, Eye, X, ArrowRight, SealCheck, Cards } from '@phosphor-icons/react';
 import { api } from '@/api';
-import { CAN_DO, FUNCTIONS, FUNCTION_INFO, LEVELS, SKILLS, cap } from '@/lib/cefr';
+import { FUNCTIONS, FUNCTION_INFO, LEVELS, SKILLS, cap } from '@/lib/cefr';
+import { bandStatus, canDoById, curriculum } from '@/lib/core/curriculum';
 import { SKILL_ICONS } from './ui';
 import { Button, LevelBadge, Panel, Segmented, Skeleton } from './ui';
 import Flashcards from './Flashcards';
@@ -113,48 +114,62 @@ function SrsStatus({ r }) {
   );
 }
 
-/** CEFR Can-Do statements per skill and function, with what has been achieved. */
+/** Curriculum Can-Do statements per sub-band (A1.1-C2.2), with progress and what has been achieved. */
 function CanDoBoard({ profile }) {
   const [level, setLevel] = useState(profile?.overall_cefr ?? 'A1');
-  const mastered = new Map<string, { date: string }>((profile?.can_do_mastered ?? []).map((c) => [c.id, c]));
-  const total = (profile?.can_do_mastered ?? []).length;
+  const all = profile?.can_do_mastered ?? [];
+  const byId = new Map<string, { date: string }>(all.map((c) => [c.id, c]));
+  // Records from before the curriculum (id "skill.level.function") stay in profile.json and are listed here.
+  const legacy = all.filter((c) => c.source !== 'curriculum' && !canDoById(c.id));
+  const bands = curriculum.levels.find((l) => l.level === level)?.sub_bands ?? [];
   return (
     <section className="space-y-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
-        <p className="max-w-xl text-[14px] text-ink-2">CEFR Companion Volume’dan uyarlanmış eylem odaklı hedefler. Birini kazanmak için o beceri, seviye ve fonksiyondaki bir görevi %80+ ile geç. Şimdiye kadar {total} kazanıldı.</p>
+        <p className="max-w-xl text-[14px] text-ink-2">
+          Müfredatın 48 eylem odaklı hedefi. Bir Can-Do, geri bildirimle onaylanan 3 farklı görevde (%80+) kullanılınca kazanılır. Şimdiye kadar {all.filter((c) => canDoById(c.id)).length} kazanıldı.
+        </p>
         <Segmented id="cdlevel" size="sm" value={level} onChange={setLevel} items={LEVELS.map((l) => ({ id: l, label: l }))} />
       </div>
       <div className="grid gap-5 lg:grid-cols-2">
-        {SKILLS.map((skill) => {
-          const Icon = SKILL_ICONS[skill];
-          return (
-            <Panel key={skill} className="p-5">
-              <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold">
-                <Icon size={16} /> {skillTr(skill)} <span className="font-mono text-xs font-normal text-ink-3">{level}</span>
-              </h3>
-              <ul className="space-y-3">
-                {FUNCTIONS.map((fn) => {
-                  const done = mastered.get(`${skill}.${level}.${fn}`);
-                  return (
-                    <li key={fn} className="flex gap-3">
-                      <span className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-full ${done ? 'bg-emerald text-paper' : 'border border-dashed border-line-strong text-ink-3'}`}>
-                        {done ? <SealCheck size={14} weight="fill" /> : <span className="font-mono text-[10px]">{FUNCTION_INFO[fn].short}</span>}
-                      </span>
-                      <div className="min-w-0">
-                        <p className={`text-[15px] leading-snug ${done ? 'text-ink' : 'text-ink-2'}`}>{CAN_DO[skill][level][fn]}</p>
-                        <p className="text-[11.5px] text-ink-3">
-                          {fnTr(fn)}
-                          {done ? `, ${dateTr(done.date, { day: 'numeric', month: 'short', year: 'numeric' })} tarihinde kazanıldı` : ''}
-                        </p>
-                      </div>
-                    </li>
-                  );
-                })}
-              </ul>
-            </Panel>
-          );
-        })}
+        {bands.map((b) => (
+          <Panel key={b.id} className="p-5">
+            <h3 className="mb-1 font-mono text-sm font-semibold">{b.id}</h3>
+            <p className="mb-3 text-[12.5px] text-ink-3">{b.goal_tr}</p>
+            <ul className="space-y-3">
+              {bandStatus(profile, b.id).map((c) => {
+                const done = byId.get(c.id);
+                const Icon = SKILL_ICONS[c.skill];
+                return (
+                  <li key={c.id} className="flex gap-3">
+                    <span className={`mt-0.5 grid size-6 shrink-0 place-items-center rounded-full ${done ? 'bg-emerald text-paper' : 'border border-dashed border-line-strong text-ink-3'}`}>
+                      {done ? <SealCheck size={14} weight="fill" /> : <span className="font-mono text-[10px]">{c.count}/3</span>}
+                    </span>
+                    <div className="min-w-0">
+                      <p className={`text-[15px] leading-snug ${done ? 'text-ink' : 'text-ink-2'}`}>{c.text}</p>
+                      <p className="flex items-center gap-1 text-[11.5px] text-ink-3">
+                        <Icon size={12} /> {skillTr(c.skill)} · {fnTr(c.function)}
+                        {done ? `, ${dateTr(done.date, { day: 'numeric', month: 'short', year: 'numeric' })} tarihinde kazanıldı` : ''}
+                      </p>
+                    </div>
+                  </li>
+                );
+              })}
+            </ul>
+          </Panel>
+        ))}
       </div>
+      {legacy.length > 0 && (
+        <div className="space-y-2">
+          <h3 className="text-[12px] font-semibold tracking-[0.06em] text-ink-3 uppercase">Müfredat öncesi kazanımlar</h3>
+          <ul className="space-y-1.5 text-[13.5px] text-ink-2">
+            {legacy.map((c) => (
+              <li key={c.id}>
+                {c.statement} <span className="font-mono text-[11.5px] text-ink-3">{c.id}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
     </section>
   );
 }

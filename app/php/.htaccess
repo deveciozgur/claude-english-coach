@@ -4,7 +4,7 @@ Options -Indexes
 DirectoryIndex index.html
 
 # Settings, coaching rules and data are never served to the browser.
-<FilesMatch "^(\.env.*|config\.php|rules\.php|CLAUDE\.md|.*\.(md|log|bak|tmp))$">
+<FilesMatch "^(\.env.*|config\.php|rules\.php|curriculum\.json|CLAUDE\.md|.*\.(md|log|bak|tmp))$">
   <IfModule mod_authz_core.c>
     Require all denied
   </IfModule>

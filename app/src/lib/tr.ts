@@ -53,6 +53,7 @@ const RULES: [RegExp, (...m: string[]) => string][] = [
   [/^(\d+) new words? added to your vault$/, (_, n) => `Kasaya ${n} yeni kelime eklendi`],
   [/^Used correctly: (.+)$/, (_, w) => `Doğru kullandın: ${w}`],
   [/^Mastered: (.+)$/, (_, w) => `Ustalaştın: ${w}`],
+  [/^Curriculum reached (.+)$/, (_, b) => `Müfredat ${b} bandına ulaştı`],
   [new RegExp(`^${SKILL_EN} reached (.+)$`), (_, s, b) => `${skillFromLabel(s)} ${b} seviyesine ulaştı`],
   [/^Brave attempt above your level$/, () => 'Seviyenin üstünde cesur deneme'],
   [/^Recalled "(.+)" \(next in (.+)\)$/, (_, w, st) => `"${w}" hatırlandı (sonraki: ${stageTr(st)})`],

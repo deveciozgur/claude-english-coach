@@ -2,11 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { ArrowsClockwise, Eye, ArrowRight, Timer } from '@phosphor-icons/react';
+import { ArrowsClockwise, Eye, ArrowRight, Timer, Plus, Check, Path } from '@phosphor-icons/react';
 import { api } from '@/api';
 import { readStored, writeStored } from '@/lib/useActivity';
 import { Button, LevelBadge, Panel } from './ui';
 import { stageTr } from '@/lib/tr';
+import { suggestedWords } from '@/lib/core/curriculum';
+import { bandLevel } from '@/lib/cefr-data';
 
 const ease = [0.16, 1, 0.3, 1] as const;
 const todayKey = () => new Date().toLocaleDateString('sv-SE');
@@ -53,6 +55,69 @@ export function CardFace({ card, revealed }) {
         )}
       </AnimatePresence>
     </div>
+  );
+}
+
+/**
+ * Curriculum vocabulary for the warm-up: up to 3 words from the active band's lexical domains that are
+ * not in vocabulary.md yet. Adding one writes a new SM-2 row (EF 2.50, 0 reps, 1d), due tomorrow.
+ */
+export function CurriculumWords({ band, refreshKey, onAdded = null }: { band: string; refreshKey: number; onAdded?: (() => void) | null }) {
+  const [words, setWords] = useState(null);
+  const [added, setAdded] = useState<string[]>([]);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    api
+      .vocabulary()
+      .then((rows) => setWords(suggestedWords(band, rows.map((r) => r.original), 3)))
+      .catch(() => setWords([]));
+  }, [band, refreshKey]);
+
+  if (!words?.length) return null;
+
+  async function add(items) {
+    setError(null);
+    try {
+      await api.addVocabulary(items.map((w) => ({ word: w.word, meaning: w.meaning_tr, cefr: bandLevel(w.band), example: w.example })));
+      setAdded((a) => [...a, ...items.map((w) => w.word)]);
+      onAdded?.();
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+
+  const open = words.filter((w) => !added.includes(w.word));
+  return (
+    <section aria-label="Müfredat kelime önerileri" className="flex flex-wrap items-center gap-x-3 gap-y-2 rounded-[12px] border border-dashed border-line-strong px-4 py-3">
+      <span className="inline-flex items-center gap-1.5 text-[13px] font-medium text-ink-2">
+        <Path size={15} className="text-amber" /> {band} müfredatından:
+      </span>
+      <ul className="flex flex-wrap gap-1.5">
+        {words.map((w) => {
+          const done = added.includes(w.word);
+          return (
+            <li key={w.word}>
+              <button
+                onClick={() => !done && add([w])}
+                disabled={done}
+                title={`${w.meaning_tr} · ${w.example}`}
+                className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-[12.5px] transition-colors ${done ? 'bg-emerald-soft text-emerald' : 'border border-line-strong text-ink-2 hover:bg-hover hover:text-ink'}`}
+              >
+                {done ? <Check size={12} /> : <Plus size={12} />} {w.word} <span className="text-ink-3">· {w.meaning_tr}</span>
+              </button>
+            </li>
+          );
+        })}
+      </ul>
+      {open.length > 1 && (
+        <button onClick={() => add(open)} className="text-[12.5px] text-ink-3 underline-offset-4 hover:text-ink hover:underline">
+          Hepsini ekle
+        </button>
+      )}
+      <span className="basis-full text-[12px] text-ink-3">{added.length ? 'Eklendi: yarınki ısınmada karşına çıkacak.' : 'Kasaya eklenen kelimeler yarın ısınmaya girer.'}</span>
+      {error && <span className="basis-full text-[12px] text-brick">{error}</span>}
+    </section>
   );
 }
 

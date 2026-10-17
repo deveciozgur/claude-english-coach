@@ -162,7 +162,7 @@ export default function SpeakingModule({ level, tasks, onActivitySaved, passedId
     activity.reset();
     try {
       const durationSec = Math.round(r.elapsed) || null;
-      const fb = await api.feedback({ mode: 'speaking', text: transcript, level, durationSec, task: { title: task.title, prompt: task.prompt } });
+      const fb = await api.feedback({ mode: 'speaking', text: transcript, level, durationSec, task: { title: task.title, prompt: task.prompt, grammarFocus: task.grammarFocus } });
       setFeedback(fb);
       await activity.save({
         skill: 'speaking',
@@ -170,6 +170,7 @@ export default function SpeakingModule({ level, tasks, onActivitySaved, passedId
         score: fb.score,
         taskId: task.id,
         fn: task.fn,
+        targetCanDo: task.targetCanDo,
         taskTitle: task.title,
         response: transcript,
         summary: `${fb.summary} (estimated ${fb.estimatedLevel}; ${fb.speaking?.wordCount ?? 0} words in ${durationSec ?? '?'}s${fb.speaking?.wpm ? `, ${fb.speaking.wpm} wpm` : ''}; ${fb.source} feedback)`,
@@ -193,7 +194,7 @@ export default function SpeakingModule({ level, tasks, onActivitySaved, passedId
     <div className="grid [&>*]:min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:gap-10">
       <div className="space-y-6">
         <div className="space-y-4">
-          <TaskTitle level={level} title={task.title} theme={task.theme} hook={task.hook} fn={task.fn} skill="speaking">
+          <TaskTitle level={level} title={task.title} theme={task.theme} hook={task.hook} fn={task.fn} skill="speaking" canDoId={task.targetCanDo}>
             <TaskPicker tasks={tasks} index={index} onChange={go} passedIds={passedIds} />
           </TaskTitle>
           <p className="max-w-[60ch] text-[17px] leading-relaxed text-ink">{task.prompt}</p>

@@ -136,14 +136,14 @@ test('sub-bands: one Transactional, Interactional and Evaluative task each; dist
   const run = (taskId, fn, score = 90, level = 'A1') => store.completeActivity({ skill: 'reading', level, fn, score, taskId, taskTitle: taskId });
   let r = await run('t1', 'transactional');
   assert.deepEqual(r.functions, { band: 'A1.1', done: ['transactional'] });
-  assert.match(r.canDo, /prices, times and places/);
+  assert.equal(r.canDo, null, 'reading tasks build skill bands; curriculum Can-Dos come from speaking/writing');
+  assert.deepEqual(r.curriculum.credited, []);
   r = await run('t2', 'transactional');
   assert.deepEqual(r.functions.done, ['transactional'], 'a second task of the same function does not fill another slot');
   r = await run('i1', 'interactional', 60);
   assert.deepEqual(r.functions.done, ['transactional'], 'below 80% does not count');
   r = await run('e-a2', 'evaluative', 100, 'A2');
   assert.deepEqual(r.functions.done, ['transactional'], 'above-level success does not jump');
-  assert.ok(r.profile.can_do_mastered.some((c) => c.id === 'reading.A2.evaluative'), 'but the A2 Can-Do is recorded');
   await run('i1', 'interactional');
   r = await run('e1', 'evaluative');
   assert.deepEqual(r.bandChange, { skill: 'reading', from: 'A1.1', to: 'A1.2' });
@@ -161,7 +161,7 @@ test('sub-bands: one Transactional, Interactional and Evaluative task each; dist
   assert.deepEqual(r.levelChange, { skill: 'reading', from: 'A1', to: 'A2' });
   assert.equal(r.profile.skills.reading, 'A2');
   assert.equal(r.profile.sub_band, 'A1.1', 'overall moves when the average of the four skills does');
-  assert.equal(r.profile.can_do_mastered.filter((c) => c.skill === 'reading' && c.level === 'A1').length, 3);
+  assert.deepEqual(r.profile.can_do_mastered, []);
 });
 
 test('session file starts with a 5-line summary including CEFR bands', async () => {
@@ -176,7 +176,6 @@ test('session file starts with a 5-line summary including CEFR bands', async () 
   assert.match(summary[4], /^- \*\*Next:\*\*/);
   assert.equal(lines.filter((l) => l === '## Session Summary').length, 1);
   assert.match(s, /Reading \(A1, Evaluative\), 90%/);
-  assert.match(s, /Can-Do achieved:/);
 });
 
 test('error ledger: repeat resets streak; 3 later sessions of correct use resolve the pattern', async () => {

@@ -76,9 +76,14 @@ Every task serves one of three functions:
 - **Interactional (I)**: building and keeping relationships (introductions, personal news, stories, small talk).
 - **Evaluative (E)**: expressing and understanding opinions, feelings, comparisons and judgements.
 
-### C. Can-Do assessment
-- Each skill, level and function has one Can-Do statement (72 in total, adapted from the Companion Volume, in `app/shared/cefr.js`).
-- A Can-Do is **achieved** when a task of that skill, level and function is passed at **80%+**. Record it in `profile.json` → `can_do_mastered`.
+### C. Can-Do assessment: the Master English Curriculum
+- The curriculum lives in `app/src/data/curriculum.json` (copied as `curriculum.json` next to `api.php`). Each of the 12 sub-bands A1.1-C2.2 has `grammar_targets`, `lexical_domains`, 4 `can_do_statements` (2 speaking, 2 writing, ids like `A1.1-CD1`), `l1_interference_alerts` (typical Turkish-speaker errors) and `speaking_scenarios`.
+- The **active band** is `profile.json` → `curriculum.band` (never below `sub_band`). The server adds a curriculum block for it to this system instruction.
+- A Can-Do is **mastered** after **3 successful uses**: three *different* speaking or writing tasks of that skill, at the band's level or above, scored **80%+**, and confirmed by the Triple-Layer Feedback. In feedback JSON, `can_do_ids` lists only the offered Can-Do ids the answer clearly demonstrated (an empty list is fine). The evidence count is in `curriculum.evidence`.
+- A mastered Can-Do is added to `profile.json` → `can_do_mastered` with its curriculum `id`, `band` and `source: "curriculum"` (older entries stay).
+- When all 4 Can-Dos of the active band are mastered: **Level Up**. The next sub-band becomes active and is recorded in `curriculum.level_ups`.
+- **i+1 language**: at A1 use short simple sentences, no complex relative clauses, no idioms; from C1 use nuanced, idiomatic English. Every ✨ Polish suggestion points to a structure or word from the **next** sub-band.
+- Warm-up and the vocabulary vault suggest words from the active band's `lexical_domains` that are not in `vocabulary.md` yet (added with the standard new-word values, 6.A).
 
 ### D. Sub-band threshold
 To move a skill up **one** sub-band (e.g. reading A1.1 → A1.2), the learner must pass, at 80%+ and at that skill's current level:
@@ -150,6 +155,7 @@ Keep these top-level keys; update values, never rename or remove keys:
   "can_do_mastered": [
     { "id": "speaking.A1.interactional", "skill": "speaking", "level": "A1", "function": "interactional", "statement": "…", "task": "task-id", "date": "YYYY-MM-DD" }
   ],
+  "curriculum": { "band": "A1.1", "evidence": { "A1.1-CD1": { "count": 1, "tasks": ["task-id"], "dates": ["YYYY-MM-DD"] } }, "level_ups": [] },
   "gamification": {
     "streak_days": 0, "xp_total": 0, "confidence_index": 80,
     "longest_streak": 0, "last_active_date": null, "unlocked_milestones": [],
@@ -170,7 +176,7 @@ Keep these top-level keys; update values, never rename or remove keys:
 At the end of every session (the web app does this after every activity):
 1. New words → `vocabulary.md` (6.A).
 2. Persistent patterns → `error_ledger.md` (6.B).
-3. Sub-bands, Can-Dos, streak, XP, confidence and SRS queue → `profile.json` (6.C).
+3. Sub-bands, Can-Dos (with curriculum evidence), streak, XP, confidence and SRS queue → `profile.json` (6.C).
 4. A **5-line** summary in `sessions/YYYY-MM-DD.md` under `## Session Summary`, directly **above** `## Activity Log`:
    - **Practice**: activities, reviews, words, XP, streak
    - **Scores**: per skill, confidence index

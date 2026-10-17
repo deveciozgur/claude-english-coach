@@ -24,9 +24,10 @@ function loadHistory() {
 }
 
 /** Free chat with the coach (Claude, CLAUDE.md as the system prompt), streamed token by token. */
-export default function CoachChat({ llm }) {
+export default function CoachChat({ llm, seed = null }: { llm: boolean; seed?: string | null }) {
   const [messages, setMessages] = useState<{ role: string; content: string }[]>(loadHistory);
-  const [draft, setDraft] = useState('');
+  // A roadmap scenario arrives as a ready-to-send first message.
+  const [draft, setDraft] = useState(seed ?? '');
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(null);
   const abort = useRef(null);

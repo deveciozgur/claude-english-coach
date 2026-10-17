@@ -73,7 +73,7 @@ const wordCount = (t) => (String(t ?? '').trim() ? String(t).trim().split(/\s+/)
  */
 export function onActivity(profile, ctx) {
   const g = profile.gamification;
-  const { date, yesterday, skill, level, current, score, title, slotFilled, fnLabel, canDo, bandChange, levelChange, addedWords, credited, resolved, response, minWords, vocabSize } = ctx;
+  const { date, yesterday, skill, level, current, score, title, slotFilled, fnLabel, canDo, curriculumLevelUp, bandChange, levelChange, addedWords, credited, resolved, response, minWords, vocabSize } = ctx;
   const wins = [];
   touchStreak(profile, date, yesterday, wins);
 
@@ -84,6 +84,7 @@ export function onActivity(profile, ctx) {
   if (addedWords > 0) wins.push({ kind: 'words', label: `${addedWords} new word${addedWords > 1 ? 's' : ''} added to your vault`, points: 2 * addedWords });
   if (credited.length) wins.push({ kind: 'polish', label: `Used correctly: ${credited.slice(0, 2).map((e) => `"${e.after}"`).join(', ')}${credited.length > 2 ? '…' : ''}`, points: 5 * credited.length });
   for (const e of resolved) wins.push({ kind: 'resolved', label: `Mastered: "${e.after}"`, points: 15 });
+  if (curriculumLevelUp) wins.push({ kind: 'level', label: `Curriculum reached ${curriculumLevelUp.to}`, points: 50 });
   if (bandChange) wins.push({ kind: 'level', label: `${cap(skill)} reached ${bandChange.to}`, points: levelChange ? 50 : 25 });
   const above = LEVELS.indexOf(level) > LEVELS.indexOf(current);
   if (above) wins.push({ kind: 'brave', label: 'Brave attempt above your level', points: 5 });

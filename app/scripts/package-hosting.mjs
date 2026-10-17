@@ -4,6 +4,7 @@
 //   hosting-release/              (app/hosting-release, zipped to ../hosting-release.zip)
 //     index.html  404.html  _next/  _not-found/  icon.svg  robots.txt   static app (from out/)
 //     api.php  config.php  rules.php  .htaccess  .env.example           PHP server side
+//     curriculum.json                                                  A1.1-C2.2 curriculum for Gemini
 //     data/  profile.json  vocabulary.md  error_ledger.md  sessions/    starting data
 //
 // rules.php is CLAUDE.md compiled into PHP (the Gemini system instruction), so no .md file sits in
@@ -39,6 +40,8 @@ for (const f of ['index.html', '404.html', 'icon.svg', 'robots.txt', '_next', '_
 
 // PHP server side.
 for (const f of ['api.php', 'config.php', '.htaccess', '.env.example']) fs.copyFileSync(path.join(APP, 'php', f), path.join(STAGE, f));
+// The curriculum Gemini reads on the server (the app bundles its own copy; .htaccess denies direct access).
+fs.copyFileSync(path.join(APP, 'src', 'data', 'curriculum.json'), path.join(STAGE, 'curriculum.json'));
 
 // Coaching rules as PHP: returns the CLAUDE.md text, and a direct request gets an empty 403.
 const rules = fs.readFileSync(path.join(REPO, 'CLAUDE.md'), 'utf8').replace(/\r\n/g, '\n');

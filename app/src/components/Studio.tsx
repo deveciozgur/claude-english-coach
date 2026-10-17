@@ -12,7 +12,7 @@ import { readStored, writeStored } from '@/lib/useActivity';
 import { SKILL_ICONS, Segmented, LevelBadge, Button } from './ui';
 import { fnTr, skillTr, themeTr } from '@/lib/tr';
 import { FunctionSlots } from './Sidebar';
-import WarmUp from './WarmUp';
+import WarmUp, { CurriculumWords } from './WarmUp';
 import ReadingModule from './ReadingModule';
 import WritingModule from './WritingModule';
 import ListeningModule from './ListeningModule';
@@ -124,6 +124,7 @@ export default function Studio({ profile, onActivitySaved, refreshKey }) {
         </div>
 
         <WarmUp refreshKey={refreshKey} onReviewed={(r) => onActivitySaved({ profile: r.profile })} />
+        <CurriculumWords band={profile.curriculum?.band ?? profile.sub_band} refreshKey={refreshKey} />
 
         <DailyLoot refreshKey={refreshKey} />
 

@@ -117,7 +117,8 @@ test('activity returns wins; daily loot collects wins, words, Can-Dos and XP', a
   const loot = await store.dailyLoot();
   assert.ok(loot.points >= r.motivation.points);
   assert.deepEqual(loot.words.map((w) => w.original), ['level up']);
-  assert.equal(loot.canDos[0].id, 'writing.A1.evaluative');
+  assert.deepEqual(r.curriculum.credited.map((c) => [c.id, c.count]), [['A1.1-CD3', 1]], 'one step toward the first open A1.1 writing Can-Do');
+  assert.deepEqual(loot.canDos, [], 'mastered only after 3 demonstrations');
   assert.equal(loot.streak, 1);
   assert.match(await store.readSession(store.today()), /XP; day 1 streak/);
 });

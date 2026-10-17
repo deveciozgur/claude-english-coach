@@ -15,7 +15,8 @@ import { findTable, parseBulletList, renderRow } from './markdown.ts';
 import { onActivity, onQuickPlay, onReview } from './motivation.ts';
 import { normalizeProfile, overallBand, validateProfile } from './schema.ts';
 import { addDays, intervalDays, preview, schedule, toQuality } from './srs.ts';
-import { BANDS, FUNCTIONS, FUNCTION_INFO, LEVELS, SKILLS, bandLevel, canDoId, canDoStatement, nextBand } from '../cefr-data.ts';
+import { applyEvidence, curriculumState, maxBand } from './curriculum.ts';
+import { BANDS, FUNCTIONS, FUNCTION_INFO, LEVELS, SKILLS, bandLevel, nextBand } from '../cefr-data.ts';
 
 export { LEVELS, SKILLS, addDays };
 
@@ -123,10 +124,12 @@ export function updateProfile(patch) {
 }
 
 /** Keeps skills, overall level and sub-band consistent with the per-skill sub-bands. */
+/** The overall sub-band is the higher of the skills' average and the curriculum band (completed Can-Dos). */
 function syncLevels(profile) {
   for (const s of SKILLS) profile.skills[s] = bandLevel(profile.skill_bands[s]);
-  profile.sub_band = overallBand(profile.skill_bands);
+  profile.sub_band = maxBand(overallBand(profile.skill_bands), profile.curriculum?.band ?? '');
   profile.overall_cefr = bandLevel(profile.sub_band);
+  curriculumState(profile);
 }
 
 const bandProgress = (profile, skill, band) => profile.progress?.[skill]?.[band] ?? { transactional: null, interactional: null, evaluative: null, passed: [] };
@@ -473,7 +476,7 @@ async function writeSessionUnlocked(entryMd, profile) {
 }
 
 // ---------- activity completion ----------
-function sessionEntry(a, outcome, loggedErrors, addedWords, credit, canDo) {
+function sessionEntry(a, outcome, loggedErrors, addedWords, credit, canDo, cur = null) {
   const lines = [`### ${clock()} ${cap(a.skill)} (${a.level}${a.fn ? `, ${FUNCTION_INFO[a.fn].label}` : ''}), ${a.score}%`, `- **Task:** ${a.taskTitle}`];
   if (a.summary) lines.push(`- **Summary:** ${a.summary}`);
   if (a.response) lines.push(`- **Response:** ${String(a.response).replace(/\s+/g, ' ').slice(0, 600)}`);
@@ -483,6 +486,7 @@ function sessionEntry(a, outcome, loggedErrors, addedWords, credit, canDo) {
   if (credit.credited.length) lines.push(`- **Correct use:** ${credit.credited.map((e) => `"${e.after}" (streak ${e.streak}/${STREAK_TO_RESOLVE})`).join('; ')}`);
   if (credit.resolvedNow.length) lines.push(`- **Resolved:** ${credit.resolvedNow.map((e) => `"${e.before}" → "${e.after}"`).join('; ')}`);
   if (addedWords.length) lines.push(`- **New words:** ${addedWords.map((w) => w.original).join(', ')}`);
+  if (cur?.credited.length) lines.push(`- **Curriculum (${cur.band}):** ${cur.credited.map((c) => `${c.id} ${c.count}/3`).join(', ')}`);
   if (canDo) lines.push(`- **Can-Do achieved:** ${canDo}`);
   lines.push(`- **CEFR:** ${outcome}`);
   return lines.join('\n');
@@ -511,15 +515,6 @@ export const completeActivity = (a) =>
     const current = bandLevel(band);
     const passed = score >= MASTERY_THRESHOLD;
 
-    // Can-Do: any passed task at a level records that skill + level + function statement.
-    let canDo = null;
-    if (passed && a.fn) {
-      const id = canDoId(a.skill, a.level, a.fn);
-      if (!profile.can_do_mastered.some((c) => c.id === id)) {
-        canDo = canDoStatement(a.skill, a.level, a.fn);
-        profile.can_do_mastered.push({ id, skill: a.skill, level: a.level, function: a.fn, statement: canDo, task: taskId, date: today() });
-      }
-    }
 
     // Sub-band progress: one distinct passed task per function at the skill's current level.
     profile.progress[a.skill] ??= {};
@@ -551,6 +546,12 @@ export const completeActivity = (a) =>
       const missing = FUNCTIONS.filter((f) => !prog[f]).map((f) => FUNCTION_INFO[f].label);
       outcome = `well done; for ${nextBand(band)} you still need ${missing.join(' and ')} ${current} task${missing.length === 1 ? '' : 's'} (a different task each)`;
     }
+    syncLevels(profile);
+
+    // Curriculum Can-Dos: speaking/writing evidence confirmed by the Triple-Layer feedback (3 = mastered).
+    const cur = applyEvidence(profile, { skill: a.skill, fn: a.fn, level: a.level, score, taskId, date: today(), canDoIds: Array.isArray(a.canDoIds) ? a.canDoIds : undefined, targetCanDo: a.targetCanDo });
+    const canDo = cur.mastered[0]?.text ?? null;
+    if (cur.levelUp) outcome += `; curriculum ${cur.levelUp.from} → ${cur.levelUp.to} (all Can-Dos mastered)`;
     syncLevels(profile);
 
     // stats
@@ -613,6 +614,7 @@ export const completeActivity = (a) =>
       slotFilled,
       fnLabel: a.fn ? FUNCTION_INFO[a.fn].label : '',
       canDo,
+      curriculumLevelUp: cur.levelUp,
       bandChange,
       levelChange,
       addedWords: addedWords.length,
@@ -627,7 +629,7 @@ export const completeActivity = (a) =>
     profile.srs_queue = srsQueue(vocabRows);
 
     await writeAtomic(file('profile.json'), serialize(profile));
-    const sessionFile = await writeSessionUnlocked(sessionEntry({ ...a, wins: entry.wins }, outcome, loggedErrors, addedWords, credit, canDo), profile);
+    const sessionFile = await writeSessionUnlocked(sessionEntry({ ...a, wins: entry.wins }, outcome, loggedErrors, addedWords, credit, canDo, cur), profile);
 
     const nowBand = profile.skill_bands[a.skill];
     const nowProg = bandProgress(profile, a.skill, nowBand);
@@ -638,6 +640,7 @@ export const completeActivity = (a) =>
       levelChange,
       outcome,
       canDo,
+      curriculum: cur,
       functions: { band: nowBand, done: FUNCTIONS.filter((f) => nowProg[f]) },
       loggedErrors,
       credited: credit.credited,

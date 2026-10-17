@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { BookOpenText, PenNib, Headphones, Microphone, CheckCircle, TrendUp, FileText, WarningCircle, Check, SealCheck } from '@phosphor-icons/react';
 import { FUNCTIONS, FUNCTION_INFO, LEVELS, MASTERY, band, cap, canDoStatement, levelIndex } from '@/lib/cefr';
 import { WinsBurst } from './momentum';
+import { canDoById } from '@/lib/core/curriculum';
 import { FUNCTION_TR, fnTr, skillTr, themeTr } from '@/lib/tr';
 
 export const SKILL_ICONS = { reading: BookOpenText, writing: PenNib, listening: Headphones, speaking: Microphone };
@@ -161,6 +162,21 @@ export function SaveReceipt({ result, error }) {
           <SealCheck size={17} weight="fill" className="mt-px shrink-0" /> Can-Do kazanıldı: <span className="font-normal text-ink">{canDo}</span>
         </p>
       )}
+      {result.curriculum?.levelUp && (
+        <p className="flex items-start gap-1.5 font-medium text-amber">
+          <TrendUp size={17} className="mt-px shrink-0" /> Müfredat: {result.curriculum.levelUp.from} → {result.curriculum.levelUp.to} bandı açıldı
+        </p>
+      )}
+      {result.curriculum?.credited?.length > 0 && (
+        <p className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[13px] text-ink-3">
+          <span>Can-Do ilerlemesi:</span>
+          {result.curriculum.credited.map((c) => (
+            <span key={c.id} title={c.text} className="font-mono text-ink-2">
+              {c.id} {c.count}/3
+            </span>
+          ))}
+        </p>
+      )}
       {(credited.length > 0 || resolvedErrors.length > 0) && (
         <p className="text-ink-2">
           {resolvedErrors.length > 0 && <span className="font-medium text-emerald">Çözüldü: {resolvedErrors.map((e) => e.after).join(', ')}. </span>}
@@ -218,8 +234,9 @@ export function TurkishHint({ children, className = '' }) {
 
 const THEME_TONE = { Gaming: 'text-indigo', Travel: 'text-emerald', Tech: 'text-indigo', Culture: 'text-amber', 'Daily life': 'text-ink-2' };
 
-export function TaskTitle({ level, title, theme, hook, fn, skill, children }) {
-  const canDo = fn && skill ? canDoStatement(skill, level, fn) : '';
+export function TaskTitle({ level, title, theme, hook, fn, skill, canDoId = null, children }) {
+  // Curriculum practice tasks name their own Can-Do; the rest use the skill/level/function statement.
+  const canDo = canDoId ? `${canDoId}: ${canDoById(canDoId)?.text ?? ''}` : fn && skill ? canDoStatement(skill, level, fn) : '';
   return (
     <div className="space-y-2">
       <div className="flex items-start justify-between gap-3">

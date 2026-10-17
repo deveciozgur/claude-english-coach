@@ -27,6 +27,7 @@ Zip'in içeriği (yalnızca canlı sitede gerekenler):
 index.html  404.html  icon.svg  robots.txt   ← statik arayüz
 _next/  _not-found/                          ← arayüzün JS/CSS dosyaları
 api.php  config.php  rules.php               ← sunucu tarafı ve koçluk kuralları
+curriculum.json                              ← A1.1-C2.2 müfredatı (Gemini'ye eklenir, dışarıdan 403)
 .htaccess                                    ← gizli dosyaları korur (gizli dosya!)
 .env.example                                 ← ayar şablonu (gizli dosya!)
 data/                                        ← başlangıç verileri (dışarıdan 403)
@@ -83,6 +84,7 @@ Kurulumdan sonra tarayıcıda şu adresleri aç. Hepsi **403 Forbidden** (veya 4
 https://coach.ozgurdeveci.com/.env
 https://coach.ozgurdeveci.com/config.php
 https://coach.ozgurdeveci.com/rules.php
+https://coach.ozgurdeveci.com/curriculum.json
 https://coach.ozgurdeveci.com/data/profile.json
 https://coach.ozgurdeveci.com/data/vocabulary.md
 ```
@@ -104,6 +106,8 @@ Diğer önlemler:
 1. Yeni `hosting-release.zip` dosyasını bilgisayarında aç.
 2. **`data/` klasörünü silip** kalan her şeyi FTP ile yükle (ya da FTP programında `data/` klasörünü atla).
 3. Sunucudaki `.env` dosyasına dokunma (pakette yok, üzerine yazılmaz).
+
+> **Müfredat güncellemesi:** Bu sürümle gelen `curriculum.json` dosyasını da yükle. Mevcut `profile.json` olduğu gibi kalır; uygulama ilk açılışta yalnızca yeni bir `curriculum` anahtarı ekler (aktif bant = mevcut `sub_band`). Hiçbir anahtar silinmez veya yeniden adlandırılmaz.
 
 ## 7. Yedekleme
 

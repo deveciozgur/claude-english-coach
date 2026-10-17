@@ -485,5 +485,7 @@ export function feedbackToActivity(feedback) {
     errors: feedback.grammar.map((g) => ({ category: g.category, before: g.before, after: g.after, rule: g.rule })),
     // Original = the learner's word, Upgraded = the stronger word to learn (reviewed as an upgrade card).
     vocabulary: feedback.vocabulary.map((v) => ({ original: v.original, upgraded: v.upgrade, cefr: v.level, meaning: '', example: v.example })),
+    // Curriculum: Can-Dos the AI feedback confirmed (absent for offline feedback).
+    ...(Array.isArray(feedback.can_do_ids) ? { canDoIds: feedback.can_do_ids } : {}),
   };
 }

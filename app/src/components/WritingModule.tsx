@@ -42,7 +42,7 @@ export default function WritingModule({ level, tasks, onActivitySaved, passedIds
     setSubmitted(text);
     activity.reset();
     try {
-      const fb = await api.feedback({ mode: 'writing', text, level, task: { title: task.title, prompt: task.prompt, minWords: task.minWords, maxWords: task.maxWords, register: task.register } });
+      const fb = await api.feedback({ mode: 'writing', text, level, task: { title: task.title, prompt: task.prompt, minWords: task.minWords, maxWords: task.maxWords, register: task.register, grammarFocus: task.grammarFocus } });
       setFeedback(fb);
       await activity.save({
         skill: 'writing',
@@ -50,6 +50,7 @@ export default function WritingModule({ level, tasks, onActivitySaved, passedIds
         score: fb.score,
         taskId: task.id,
         fn: task.fn,
+        targetCanDo: task.targetCanDo,
         taskTitle: task.title,
         response: text,
         summary: `${fb.summary} (estimated ${fb.estimatedLevel}, ${words} words, ${fb.source} feedback)`,
@@ -73,7 +74,7 @@ export default function WritingModule({ level, tasks, onActivitySaved, passedIds
     <div className="grid [&>*]:min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:gap-10">
       <div className="space-y-6">
         <div className="space-y-4">
-          <TaskTitle level={level} title={task.title} theme={task.theme} hook={task.hook} fn={task.fn} skill="writing">
+          <TaskTitle level={level} title={task.title} theme={task.theme} hook={task.hook} fn={task.fn} skill="writing" canDoId={task.targetCanDo}>
             <TaskPicker tasks={tasks} index={index} onChange={go} passedIds={passedIds} />
           </TaskTitle>
           <p className="max-w-[60ch] text-[17px] leading-relaxed text-ink">{task.prompt}</p>
