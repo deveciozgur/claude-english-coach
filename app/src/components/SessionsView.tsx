@@ -48,7 +48,7 @@ export default function SessionsView({ refreshKey }) {
           {error}
         </p>
       )}
-      <div className="grid gap-8 md:grid-cols-[200px_minmax(0,1fr)] md:gap-10">
+      <div className="grid gap-8 @2xl:grid-cols-[200px_minmax(0,1fr)] @2xl:gap-10">
         <nav aria-label="Oturum günleri">
           {dates === null ? (
             <div className="space-y-2">
@@ -58,7 +58,7 @@ export default function SessionsView({ refreshKey }) {
           ) : dates.length === 0 ? (
             <p className="text-sm text-ink-3">Henüz oturum yok.</p>
           ) : (
-            <ul className="flex gap-1 overflow-x-auto md:flex-col">
+            <ul className="flex gap-1 overflow-x-auto @2xl:flex-col">
               {dates.map((d) => (
                 <li key={d}>
                   <button

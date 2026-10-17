@@ -66,7 +66,7 @@ function buildPrompt({ mode, text, level, task, profile, topErrors, canDos = [] 
     `<task level="${level}" mode="${mode}">\n${task.title ?? ''}\n${task.prompt ?? ''}${task.minWords ? `\nTarget length: ${task.minWords}-${task.maxWords ?? task.minWords * 2} words.` : ''}${task.register ? `\nExpected register: ${task.register}.` : ''}\n</task>`,
     `<learner_${mode === 'speaking' ? 'transcript' : 'text'}>\n${text}\n</learner_${mode === 'speaking' ? 'transcript' : 'text'}>`,
     [
-      'Give Triple-Layer feedback on the learner response above, as Lumos, following the Strength-First rule.',
+      'Give Triple-Layer feedback on the learner response above, as Seyyahname, following the Strength-First rule.',
       '- strengths: before any correction, name 1-3 concrete things done well or bravely attempted, quoting the learner (e.g. You used "since" instead of "because", which sounds fluent).',
       '- Frame every correction as a "quick polish" that unlocks the next level. Never use the words "wrong", "mistake" or "error" in rule or summary text; keep the tone warm and specific.',
       `- grammar: the most important errors first (at most 5). "before" and "after" must be short exact fragments from the text and their corrected form. Write "rule" as a short explanation the learner can understand at ${level}; a short Turkish gloss in parentheses is welcome for A1–A2.`,

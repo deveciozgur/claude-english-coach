@@ -151,7 +151,7 @@ export default function ReadingModule({ level, tasks, onActivitySaved, passedIds
   const paragraphs = task.text.split('\n\n');
 
   return (
-    <div className="grid [&>*]:min-w-0 gap-10 xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] xl:gap-12">
+    <div className="grid [&>*]:min-w-0 gap-10 @4xl:grid-cols-[minmax(0,1.15fr)_minmax(0,1fr)] @4xl:gap-12">
       <Panel as="article" className="self-start px-6 py-7 sm:px-10 sm:py-10">
         <TaskTitle level={level} title={task.title} theme={task.theme} hook={task.hook} fn={task.fn} skill="reading">
           <TaskPicker tasks={tasks} index={index} onChange={go} passedIds={passedIds} />
@@ -186,7 +186,7 @@ export default function ReadingModule({ level, tasks, onActivitySaved, passedIds
         </AnimatePresence>
       </Panel>
 
-      <div className="space-y-8 xl:pt-4">
+      <div className="space-y-8 @4xl:pt-4">
         {task.questions.map((q) => (
           <Question key={`${task.id}-${q.id}`} q={q} value={answers[q.id]} checked={checked} shield={shield} onChange={(v) => setAnswers((a) => ({ ...a, [q.id]: v }))} />
         ))}

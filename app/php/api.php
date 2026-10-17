@@ -1,5 +1,5 @@
 <?php
-// Lumos AI English Coach v1.0: the whole server side, for shared hosting (PHP 7.4+ with cURL).
+// Seyyahname AI English Coach v1.0: the whole server side, for shared hosting (PHP 7.4+ with cURL).
 //
 //   GET  ?action=auth_status            lock state, AI availability
 //   POST ?action=verify    {pin}        checks APP_SECRET_PIN, sets the signed lumos_auth cookie
@@ -245,7 +245,7 @@ function coach_rules(): string
     } else {
         $rules = (string) file_get_contents(COACH_RULES_FILE);
     }
-    return $rules !== '' ? $rules : 'You are Lumos AI English Coach, an elite English coach and CEFR assessor.';
+    return $rules !== '' ? $rules : 'You are Seyyahname AI English Coach, an elite English coach and CEFR assessor.';
 }
 
 /** How complex Gemini's own English should be at each level (Krashen i+1: the band level, one notch up). */
@@ -290,7 +290,7 @@ function curriculum_context(): string
     $evidence = $profile['curriculum']['evidence'] ?? [];
 
     $lines = [];
-    $lines[] = '## Curriculum context (Lumos Master English Curriculum)';
+    $lines[] = '## Curriculum context (Seyyahname Master English Curriculum)';
     $lines[] = 'Learner: overall CEFR ' . ($profile['overall_cefr'] ?? $level) . ', active sub-band ' . $active . ', target ' . ($profile['target_cefr'] ?? 'C2') . '.';
     $lines[] = 'Band goal: ' . ($band['goal'] ?? '');
     $lines[] = 'Your own English (i+1): ' . (LEVEL_LANGUAGE[$level] ?? LEVEL_LANGUAGE['B1']) . ' Now and then use one structure from ' . $next['id'] . ' so the learner meets it in context.';
@@ -536,7 +536,7 @@ switch ($action) {
         }
         $context = is_string($req['context'] ?? null) ? mb_substr($req['context'], 0, 8000) : '';
         $system = coach_rules() . "\n\n---\n" . curriculum_context() . "\n\n---\n## Current learner state (from the files on the server)\n```json\n$context\n```\n"
-            . 'This is a chat in the Lumos web app. The app saves tasks, warm-up reviews and scores to the files itself; '
+            . 'This is a chat in the Seyyahname web app. The app saves tasks, warm-up reviews and scores to the files itself; '
             . "in this chat, coach and practise. Answer in English at the learner's level; add short Turkish help only when it unblocks them.";
 
         // Stream: relay Gemini's SSE as {"text": "..."} events, flushing every chunk.

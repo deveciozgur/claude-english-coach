@@ -1,4 +1,4 @@
-# Lumos AI English Coach v1.0: Paylaşımlı Hostinge Kurulum
+# Seyyahname AI English Coach v1.0: Paylaşımlı Hostinge Kurulum
 
 Node.js, PM2, SSH ya da terminal gerekmez. Sunucunda **PHP 7.4+ (cURL eklentisiyle)** çalışıyorsa, dosyaları FTP ile yükleyip bir `.env` dosyası oluşturman yeterli. cPanel, Plesk ve DirectAdmin gibi panellerin neredeyse hepsinde bu hazır gelir.
 
@@ -118,7 +118,7 @@ Diğer önlemler:
 
 | Belirti | Çözüm |
 |---|---|
-| "Lumos cannot reach its data" ve "APP_SECRET_PIN is not set" | `.env` dosyası yok ya da adı yanlış (`.env.txt` olmamalı). |
+| "Seyyahname cannot reach its data" ve "APP_SECRET_PIN is not set" | `.env` dosyası yok ya da adı yanlış (`.env.txt` olmamalı). |
 | "api.php did not answer with JSON" | PHP kapalı ya da sürümü çok eski. Panelden PHP 7.4 veya üstünü seç. |
 | "Cannot create the data folder" | `data/` klasörüne yazma izni ver (755) ya da klasörü elle oluştur. |
 | Coach "Gemini rejected the API key" diyor | `GEMINI_API_KEY` yanlış ya da bu anahtarda Gemini API kapalı. |

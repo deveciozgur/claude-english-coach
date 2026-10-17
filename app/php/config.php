@@ -1,5 +1,5 @@
 <?php
-// Lumos AI English Coach v1.0: settings for api.php.
+// Seyyahname AI English Coach v1.0: settings for api.php.
 // Values come from a .env file next to this file, or one folder above it (outside the web root,
 // the safer place). Real environment variables set by the host win over .env.
 

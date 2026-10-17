@@ -191,7 +191,7 @@ export default function SpeakingModule({ level, tasks, onActivitySaved, passedId
   }
 
   return (
-    <div className="grid [&>*]:min-w-0 gap-8 xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] xl:gap-10">
+    <div className="grid [&>*]:min-w-0 gap-8 @4xl:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] @4xl:gap-10">
       <div className="space-y-6">
         <div className="space-y-4">
           <TaskTitle level={level} title={task.title} theme={task.theme} hook={task.hook} fn={task.fn} skill="speaking" canDoId={task.targetCanDo}>
@@ -320,7 +320,7 @@ export default function SpeakingModule({ level, tasks, onActivitySaved, passedId
         <SaveReceipt result={activity.result} error={activity.error} />
       </div>
 
-      <div className="xl:sticky xl:top-24 xl:self-start">
+      <div className="@4xl:sticky @4xl:top-24 @4xl:self-start">
         <FeedbackCard feedback={feedback} loading={loading} text={submitted} level={level} />
       </div>
     </div>

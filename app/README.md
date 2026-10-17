@@ -1,4 +1,4 @@
-# Lumos AI English Coach v1.0 — Web App
+# Seyyahname AI English Coach v1.0 — Web App
 
 Next.js 16 (TypeScript, Tailwind v4) app for the coach in `../CLAUDE.md`, built as a **static export** for plain shared hosting: the coach logic runs in the browser and a single `api.php` (PIN, file storage, Gemini) does the server work. No Node.js on the server. Install guide: [`../DEPLOYMENT_v1.md`](../DEPLOYMENT_v1.md).
 
@@ -72,12 +72,14 @@ php -S localhost:8080
 
 ## Design system
 
-Concept C "Dark Elegance", defined as CSS variables in `src/app/globals.css`. Dark is the base palette; `<html data-theme="light">` switches to the light one. An inline script in `layout.tsx` applies the stored choice (`localStorage['lumos.theme']`) or, without one, the system setting before first paint; the sun/moon button toggles and stores it.
+Concept C "Dark Elegance", defined as CSS variables in `src/app/globals.css`. Dark is the base palette; `<html data-theme="light">` switches to the light one. The default is **Sistem**: the page follows `prefers-color-scheme` live. The Sistem / Koyu / Açık switch in the top bar stores a manual choice in `localStorage['lumos.theme']` that overrides the system (choosing Sistem removes it). An inline script in `layout.tsx` applies it before first paint.
+
+**Layout:** learner sheet and navigation on the left, the active view in the centre and, from 1280px (`xl`), the coach chat as a persistent right-hand column that stays open across views (below that, Koç is a tab). Centre views use container queries (`@container` on `<main>`) so their grids follow the space left by the chat column.
 
 - **Type:** Geist for everything (headings tight at -0.03em), Geist Mono for CEFR codes, figures and meta. Self-hosted via `@fontsource`, no external font requests.
 - **Colour:** dark `#0A0A0B` / `#111113` surfaces with `#232327` hairlines and `#EDEDEF` ink; light `#F4F4F5` / `#FFFFFF` with `#18181B` ink. One accent, champagne `#E8C07D` (bronze `#946318` in light), for progress and the CEFR ladder. Meaning colours: emerald = strengths and correct answers, indigo = recasts and phonetics, brick = deletions.
 - **Shape:** panels 14px with a coloured hairline on top of the feedback cards, inputs 10px, buttons, badges and tabs fully rounded. Shadows only in the light theme.
-- **Motion:** `motion` for state changes only (tab indicator, accordion, score arc, theme icon). Respects `prefers-reduced-motion`.
+- **Motion:** `motion` for state changes only (tab indicator, accordion, score arc, theme switch). Respects `prefers-reduced-motion`.
 - **Icons:** Phosphor.
 
 ## Structure

@@ -130,7 +130,7 @@ function Detail({ band, state, profile, vault, onPractice, onRehearse, onAddWord
       </Section>
 
       <Section title="Konuşma senaryoları">
-        <ul className="grid gap-3 md:grid-cols-3">
+        <ul className="grid gap-3 @xl:grid-cols-3">
           {band.speaking_scenarios.map((s) => (
             <li key={s.id} className="flex flex-col gap-2 rounded-[12px] border border-line bg-sunk/50 p-3.5">
               <span className="text-[11px] font-semibold tracking-[0.06em] text-amber uppercase">{SCENARIO_TR[s.type] ?? s.type}</span>
@@ -153,7 +153,7 @@ function Detail({ band, state, profile, vault, onPractice, onRehearse, onAddWord
       </Section>
 
       <Section title="Kelime alanları">
-        <div className="grid gap-3 md:grid-cols-2">
+        <div className="grid gap-3 @xl:grid-cols-2">
           {band.lexical_domains.map((d) => {
             const add = missing(d.items);
             return (
@@ -282,11 +282,11 @@ export default function Roadmap({ profile, onActivitySaved, onRehearse, refreshK
           {note}
         </p>
       )}
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-[300px_minmax(0,1fr)]">
-        <Panel className="h-fit p-4 lg:sticky lg:top-[68px]">
+      <div className="grid grid-cols-1 gap-6 @4xl:grid-cols-[280px_minmax(0,1fr)]">
+        <Panel className="h-fit p-4 @4xl:sticky @4xl:top-[68px]">
           <Tree active={active} selected={band.id} onSelect={setSelected} profile={profile} />
         </Panel>
-        <Panel className="p-5 sm:p-6">
+        <Panel className="@container p-5 sm:p-6">
           <Detail band={band} state={bandState(band.id, active)} profile={profile} vault={vault} onPractice={startPractice} onRehearse={onRehearse} onAddWords={addWords} />
         </Panel>
       </div>

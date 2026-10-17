@@ -126,7 +126,7 @@ export default function ListeningModule({ level, tasks, onActivitySaved, passedI
   const isPlayingAll = playing === 'all';
 
   return (
-    <div className="grid [&>*]:min-w-0 gap-10 xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] xl:gap-12">
+    <div className="grid [&>*]:min-w-0 gap-10 @4xl:grid-cols-[minmax(0,1.3fr)_minmax(0,1fr)] @4xl:gap-12">
       <Panel className="self-start overflow-hidden">
         <div className="px-6 pt-7 sm:px-9">
           <TaskTitle level={level} title={task.title} theme={task.theme} hook={task.hook} fn={task.fn} skill="listening">
@@ -212,7 +212,7 @@ export default function ListeningModule({ level, tasks, onActivitySaved, passedI
         )}
       </Panel>
 
-      <div className="space-y-8 xl:pt-4">
+      <div className="space-y-8 @4xl:pt-4">
         {task.questions.map((q) => (
           <fieldset key={q.id} className="space-y-3">
             <legend className="flex w-full items-start gap-3">
