@@ -166,7 +166,7 @@ function locked_message(int $wait): string
 
 // ---------- data folder ----------
 
-/** Creates data/ on first run, protects it, and fills it from data-seed/ if it has no profile yet. */
+/** Makes sure data/ exists and is protected. The release ships data/ with the starting files; data-seed/ is an optional fallback. */
 function ensure_data_dir(): void
 {
     if (!is_dir(DATA_DIR . '/sessions') && !@mkdir(DATA_DIR . '/sessions', 0755, true) && !is_dir(DATA_DIR . '/sessions')) {
@@ -238,7 +238,13 @@ function session_names(): array
 
 function coach_rules(): string
 {
-    $rules = is_readable(COACH_RULES_FILE) ? (string) file_get_contents(COACH_RULES_FILE) : '';
+    if (!is_readable(COACH_RULES_FILE)) {
+        $rules = '';
+    } elseif (substr(COACH_RULES_FILE, -4) === '.php') {
+        $rules = (string) include COACH_RULES_FILE;
+    } else {
+        $rules = (string) file_get_contents(COACH_RULES_FILE);
+    }
     return $rules !== '' ? $rules : 'You are Lumos AI English Coach, an elite English coach and CEFR assessor.';
 }
 

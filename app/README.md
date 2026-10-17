@@ -64,6 +64,7 @@ Aligned with the **CEFR Companion Volume** (action-oriented Can-Do assessment), 
 
 ```bash
 npm run build && cd hosting-release && cp .env.example .env   # set APP_SECRET_PIN in .env
+# note: this data/ is a copy; changes made here do not reach the repository's files
 php -S localhost:8080
 ```
 
@@ -90,5 +91,6 @@ src/components/          CoachApp, Sidebar, Studio (Reading / Writing / Listenin
                          Flashcards (0-5), WarmUp, CoachChat, Gatekeeper, Vault, SessionsView
 src/data/tasks.ts        Task bank by CEFR level (A1–B2); add tasks here
 php/                     api.php, config.php, .htaccess, .env.example: the shared-hosting server side
-scripts/package-hosting.mjs   Assembles hosting-release/ and writes ../hosting-release.zip (no zip tool needed)
+scripts/package-hosting.mjs   Assembles the clean hosting-release/ (static app, PHP, rules.php from CLAUDE.md, data/)
+                              and writes ../hosting-release.zip (no zip tool needed)
 ```

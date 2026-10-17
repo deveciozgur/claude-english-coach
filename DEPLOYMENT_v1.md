@@ -8,8 +8,8 @@ Node.js, PM2, SSH ya da terminal gerekmez. Sunucunda **PHP 7.4+ (cURL eklentisiy
 |---|---|---|
 | Arayüz | `index.html`, `_next/`, `icon.svg` | Next.js `output: 'export'` ile üretilmiş statik HTML/JS/CSS. Koçluk mantığı (SM-2, alt bant geçişi, hata defteri, oturum özeti) tarayıcıda çalışır. |
 | Sunucu | `api.php`, `config.php` | PIN kontrolü, veri dosyalarını okuma/yazma (`?action=get_state`, `?action=save_state`) ve Gemini bağlantısı (cURL). |
-| Kurallar | `CLAUDE.md` | Gemini'ye sistem talimatı olarak gönderilir. |
-| Veriler | `data/` | `profile.json`, `vocabulary.md`, `error_ledger.md`, `sessions/`. İlk açılışta `data-seed/` içinden otomatik oluşturulur. Şemalar değişmedi. |
+| Kurallar | `rules.php` | `CLAUDE.md`, build sırasında PHP'ye gömülür ve Gemini'ye sistem talimatı olarak gönderilir. Pakette `.md` dosyası yoktur; `rules.php` dışarıdan açılınca 403 döner. |
+| Veriler | `data/` | `profile.json`, `vocabulary.md`, `error_ledger.md`, `sessions/`. Pakette başlangıç dosyalarıyla gelir. Şemalar değişmedi. |
 
 ## 1. Paketi al
 
@@ -21,17 +21,19 @@ npm ci
 npm run build        # out/ klasörünü derler ve ../hosting-release.zip dosyasını oluşturur
 ```
 
-Zip'in içeriği:
+Zip'in içeriği (yalnızca canlı sitede gerekenler):
 
 ```
-index.html  404.html  _next/  icon.svg  robots.txt  *.txt   ← statik arayüz
-api.php  config.php                                       ← sunucu tarafı
-.htaccess                                                 ← gizli dosyaları korur (gizli dosya!)
-.env.example                                              ← ayar şablonu (gizli dosya!)
-CLAUDE.md                                                 ← koçluk kuralları
-data-seed/                                                ← ilk açılış için verilerin
-KURULUM.txt                                               ← kısa kurulum notu
+index.html  404.html  icon.svg  robots.txt   ← statik arayüz
+_next/  _not-found/                          ← arayüzün JS/CSS dosyaları
+api.php  config.php  rules.php               ← sunucu tarafı ve koçluk kuralları
+.htaccess                                    ← gizli dosyaları korur (gizli dosya!)
+.env.example                                 ← ayar şablonu (gizli dosya!)
+data/                                        ← başlangıç verileri (dışarıdan 403)
+  profile.json  vocabulary.md  error_ledger.md  sessions/
 ```
+
+Pakette olmayanlar: `CLAUDE.md`, `.env`, `.git`, `index.txt` ve `__next.*.txt` (uygulama tek sayfa olduğu için bu dosyaları hiç istemez), `data-seed/`, `KURULUM.txt`, kaynak kod ve `node_modules`. Build betiği bunlardan biri pakete girerse hata verip durur.
 
 ## 2. FTP ile yükle
 
@@ -68,7 +70,7 @@ DATA_DIR=data
 ## 4. Siteyi aç
 
 1. `https://coach.ozgurdeveci.com` adresine git ve PIN'ini gir.
-2. İlk istekte `data/` klasörü `data-seed/` içinden otomatik oluşur ve korunur.
+2. `data/` pakette hazır gelir; `api.php` ilk istekte eksik koruma dosyalarını (`.htaccess`, `index.html`) tamamlar.
 3. Oturum 30 gün açık kalır. Sağ üstteki kilit simgesiyle kapatabilirsin.
 
 Klasör izin hatası alırsan Dosya Yöneticisi'nde site klasörüne yazma izni ver (genelde 755), ya da `data/` klasörünü kendin oluştur.
@@ -80,9 +82,9 @@ Kurulumdan sonra tarayıcıda şu adresleri aç. Hepsi **403 Forbidden** (veya 4
 ```
 https://coach.ozgurdeveci.com/.env
 https://coach.ozgurdeveci.com/config.php
-https://coach.ozgurdeveci.com/CLAUDE.md
+https://coach.ozgurdeveci.com/rules.php
 https://coach.ozgurdeveci.com/data/profile.json
-https://coach.ozgurdeveci.com/data-seed/profile.json
+https://coach.ozgurdeveci.com/data/vocabulary.md
 ```
 
 Bu koruma `.htaccess` ile sağlanır (Apache ve LiteSpeed). Sunucun yalnızca **Nginx** kullanıyorsa `.htaccess` okunmaz. O durumda `.env` dosyasını ve `data/` klasörünü web kökünün dışına taşı (3. adımdaki "daha güvenli yerleşim").
@@ -97,8 +99,11 @@ Diğer önlemler:
 
 ## 6. Güncelleme
 
-1. Yeni `hosting-release.zip` dosyasını aç.
-2. İçindekileri FTP ile yükle, **ama `.env` dosyasının ve `data/` klasörünün üzerine yazma**. Zip'te `data/` yok, sadece `data-seed/` var. Bu yüzden normal bir yükleme ilerlemeni zaten silmez.
+> **Dikkat:** Zip'te `data/` klasörü başlangıç verileriyle geliyor. Site kullanılmaya başladıktan sonra zip'teki `data/` klasörünü **yüklemek, sunucudaki ilerlemenin üzerine yazar.**
+
+1. Yeni `hosting-release.zip` dosyasını bilgisayarında aç.
+2. **`data/` klasörünü silip** kalan her şeyi FTP ile yükle (ya da FTP programında `data/` klasörünü atla).
+3. Sunucudaki `.env` dosyasına dokunma (pakette yok, üzerine yazılmaz).
 
 ## 7. Yedekleme
 
@@ -111,7 +116,7 @@ Diğer önlemler:
 |---|---|
 | "Lumos cannot reach its data" ve "APP_SECRET_PIN is not set" | `.env` dosyası yok ya da adı yanlış (`.env.txt` olmamalı). |
 | "api.php did not answer with JSON" | PHP kapalı ya da sürümü çok eski. Panelden PHP 7.4 veya üstünü seç. |
-| "Cannot create the data folder" | Site klasörüne yazma izni ver ya da `data/` klasörünü elle oluştur (755). |
+| "Cannot create the data folder" | `data/` klasörüne yazma izni ver (755) ya da klasörü elle oluştur. |
 | Coach "Gemini rejected the API key" diyor | `GEMINI_API_KEY` yanlış ya da bu anahtarda Gemini API kapalı. |
 | Coach "model was not found" diyor | `GEMINI_MODEL` değerini düzelt (örneğin `gemini-flash-latest`). |
 | Coach yanıtı bir anda geliyor | Host çıktıyı tamponluyor. Yine çalışır, sadece akış efekti olmaz. |

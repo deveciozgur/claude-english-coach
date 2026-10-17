@@ -66,8 +66,9 @@ $dataDir = lumos_env('DATA_DIR', 'data');
 define('DATA_DIR', rtrim(preg_match('~^(/|[A-Za-z]:[\\\\/])~', $dataDir) ? $dataDir : __DIR__ . '/' . $dataDir, '/\\'));
 define('SEED_DIR', __DIR__ . '/data-seed');
 
-// The coaching rules, sent to Gemini as the system instruction.
-define('COACH_RULES_FILE', __DIR__ . '/CLAUDE.md');
+// The coaching rules, sent to Gemini as the system instruction: rules.php (CLAUDE.md compiled in at
+// build time, so no .md file has to sit in the web root), or CLAUDE.md next to this file as a fallback.
+define('COACH_RULES_FILE', is_file(__DIR__ . '/rules.php') ? __DIR__ . '/rules.php' : __DIR__ . '/CLAUDE.md');
 
 define('SESSION_DAYS', 30);
 define('MAX_FAILS', 5);          // wrong PINs from one address before it is locked
