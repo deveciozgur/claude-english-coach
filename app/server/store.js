@@ -11,8 +11,9 @@
 // - Sessions: a 5-line summary at the top of each day's file, refreshed after every activity.
 
 import fs from 'node:fs/promises';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { APP_ROOT } from './env.js';
 import { findTable, parseBulletList, renderRow } from './markdown.js';
 import { onActivity, onQuickPlay, onReview } from './motivation.js';
 import { normalizeProfile, overallBand, validateProfile } from './schema.js';
@@ -21,8 +22,13 @@ import { BANDS, FUNCTIONS, FUNCTION_INFO, LEVELS, SKILLS, bandLevel, canDoId, ca
 
 export { LEVELS, SKILLS, addDays };
 
-const here = path.dirname(fileURLToPath(import.meta.url));
-export const DATA_DIR = path.resolve(process.env.COACH_DATA_DIR ?? path.join(here, '..', '..'));
+// COACH_DATA_DIR (absolute, or relative to the app folder) wins; otherwise app/data/ when it holds a
+// profile (the release package), else the repository root next to app/ (local development).
+export const DATA_DIR = process.env.COACH_DATA_DIR
+  ? path.resolve(APP_ROOT, process.env.COACH_DATA_DIR)
+  : existsSync(path.join(APP_ROOT, 'data', 'profile.json'))
+    ? path.join(APP_ROOT, 'data')
+    : path.resolve(APP_ROOT, '..');
 
 export const MASTERY_THRESHOLD = 80;
 export const STREAK_TO_RESOLVE = 3;
@@ -90,6 +96,22 @@ export function writeProfile(input) {
   const profile = normalizeProfile(input);
   if (errors.length) return Promise.reject(Object.assign(new Error(errors.join('; ')), { status: 400 }));
   return exclusive(async () => {
+    profile.srs_queue = srsQueue(await loadVocabulary());
+    await writeAtomic(file('profile.json'), serialize(profile));
+    return profile;
+  });
+}
+
+/**
+ * Merges a partial profile into profile.json (top-level keys; `gamification` one level deep),
+ * so a client can send only what changed without wiping metrics, diagnostic or history.
+ */
+export function updateProfile(patch) {
+  const errors = validateProfile(patch);
+  if (errors.length) return Promise.reject(Object.assign(new Error(errors.join('; ')), { status: 400 }));
+  return exclusive(async () => {
+    const current = await readProfile();
+    const profile = normalizeProfile({ ...current, ...patch, gamification: { ...current.gamification, ...patch.gamification } });
     profile.srs_queue = srsQueue(await loadVocabulary());
     await writeAtomic(file('profile.json'), serialize(profile));
     return profile;

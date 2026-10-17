@@ -74,6 +74,8 @@ export function validateProfile(p) {
     if (p?.skills && !LEVELS.includes(p.skills[s])) errors.push(`skills.${s} must be one of ${LEVELS.join(', ')}`);
     if (p?.skill_bands && !BANDS.includes(p.skill_bands[s])) errors.push(`skill_bands.${s} must be one of ${BANDS.join(', ')}`);
   }
+  if (p?.overall_cefr !== undefined && !LEVELS.includes(p.overall_cefr)) errors.push('overall_cefr must be a CEFR level');
+  if (p?.sub_band !== undefined && !BANDS.includes(p.sub_band)) errors.push(`sub_band must be one of ${BANDS.join(', ')}`);
   if (p?.target_cefr !== undefined && !LEVELS.includes(p.target_cefr)) errors.push('target_cefr must be a CEFR level');
   if (p?.interests !== undefined && !Array.isArray(p.interests)) errors.push('interests must be a list');
   return errors;

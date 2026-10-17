@@ -39,10 +39,20 @@ Aligned with the **CEFR Companion Volume** (action-oriented Can-Do assessment), 
 
 | Variable | Default | Purpose |
 |---|---|---|
-| `PORT` | `3001` | API port |
-| `COACH_DATA_DIR` | `..` (the `english-coach/` folder) | Where the state files live |
-| `ANTHROPIC_API_KEY` | — | Enables Claude feedback |
-| `COACH_MODEL` | `claude-opus-5-5` | Model for feedback |
+Put these in `app/.env` (template: `.env.example`) or in the environment.
+
+| Variable | Default | Purpose |
+|---|---|---|
+| `APP_SECRET_PIN` | none | PIN for the lock screen. Required for the release build; without it, local dev runs unlocked |
+| `APP_SESSION_SECRET` | random per start | Signs the login cookie |
+| `PORT` / `HOST` | `3001` / `0.0.0.0` | Where the server listens |
+| `COACH_DATA_DIR` | `app/data/` if it has a profile, else `..` | Where the state files live |
+| `ANTHROPIC_API_KEY` | none | Enables the Coach chat and Claude feedback |
+| `COACH_MODEL` | `claude-opus-5-5` | Model for feedback and chat |
+
+## Deploying to your own server
+
+`npm run build` builds the UI and assembles `release/` (dist, server, shared, seed `data/`, PM2 config). Upload it, run `npm ci --omit=dev`, fill in `.env` and start with `pm2 start ecosystem.config.cjs`. Step-by-step: [`../HOSTING_DEPLOY_GUIDE.md`](../HOSTING_DEPLOY_GUIDE.md).
 
 ## Design system
 
@@ -58,8 +68,10 @@ Editorial, warm-paper look, defined as CSS variables in `src/index.css` that swi
 
 ```
 server/   Express API: store.js (file I/O, atomic writes, profile logic), markdown.js (table parser),
-          feedback.js (Claude), heuristics.js (offline engine), store.test.js
+          auth.js (PIN gatekeeper), chat.js (streaming Coach chat), feedback.js (Claude),
+          heuristics.js (offline engine), env.js (.env loader), store.test.js
+scripts/package-release.mjs   Assembles release/ for the server
 src/      React + Tailwind: Sidebar, Studio (Reading / Writing / Listening / Speaking),
-          FeedbackCard (annotated text + Triple-Layer accordion), Waveform (live mic level), Vault (vocabulary + error ledger), SessionsView
+          Gatekeeper (lock screen), CoachChat, FeedbackCard (annotated text + Triple-Layer accordion), Waveform (live mic level), Vault (vocabulary + error ledger), SessionsView
 src/data/tasks.js   Task bank by CEFR level (A1–B2); add tasks here
 ```

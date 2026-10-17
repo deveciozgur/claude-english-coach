@@ -208,6 +208,17 @@ test('profile validation and safe session paths', async () => {
   await assert.rejects(store.readSession('../profile'), /Invalid date/);
 });
 
+test('partial profile updates merge instead of replacing the file', async () => {
+  const before = await store.readProfile();
+  await assert.rejects(store.updateProfile({ overall_cefr: 'Z9' }), /overall_cefr must be/);
+  const saved = await store.updateProfile({ interests: ['Gaming'], gamification: { mode: 'low' } });
+  assert.deepEqual(saved.interests, ['Gaming']);
+  assert.equal(saved.gamification.mode, 'low');
+  assert.equal(saved.gamification.xp_total, before.gamification.xp_total);
+  assert.deepEqual(saved.skill_bands, before.skill_bands);
+  assert.deepEqual(saved.history, before.history);
+});
+
 test('heuristics catch common Turkish-L1 slips without false positives', () => {
   const fixes = heur.analyzeGrammar('i have 25 years. She work in a office. My wife work here. I listen music on the morning.').map((g) => g.after);
   for (const f of ['I am 25 years old', 'She works', 'My wife works', 'an office', 'listen to music', 'in the morning']) assert.ok(fixes.includes(f), `missing fix: ${f}`);

@@ -6,12 +6,12 @@ import Anthropic from '@anthropic-ai/sdk';
 import { heuristicFeedback, speakingMetrics } from './heuristics.js';
 import { readCoachInstructions, readErrors, readProfile } from './store.js';
 
-const MODEL = process.env.COACH_MODEL ?? 'claude-opus-5-5';
+export const MODEL = process.env.COACH_MODEL ?? 'claude-opus-5-5';
 
 export const llmConfigured = () => Boolean(process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_AUTH_TOKEN);
 
 let client = null;
-const getClient = () => (client ??= new Anthropic());
+export const getClient = () => (client ??= new Anthropic());
 
 const str = { type: 'string' };
 const FEEDBACK_SCHEMA = {
