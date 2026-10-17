@@ -112,15 +112,15 @@ const VOCAB_HEADING = 'Vocabulary Log';
 const VOCAB_SCHEMA = [
   { key: 'date', header: 'Date' },
   { key: 'original', header: 'Original', aliases: ['Word / Phrase', 'Word'] },
-  { key: 'upgraded', header: 'Upgraded', aliases: ['C1/C2 Alternative', 'Alternative'] },
-  { key: 'stage', header: 'Interval Stage' },
-  { key: 'mastered', header: 'Mastered?', aliases: ['Mastered'] },
-  { key: 'next', header: 'Next Review' },
+  { key: 'upgraded', header: 'Upgraded', aliases: ['C1/C2 Alternative', 'Alternative', 'Target Upgrade'] },
+  { key: 'meaning', header: 'Meaning (TR)', aliases: ['Meaning'] },
+  { key: 'cefr', header: 'CEFR' },
   { key: 'ease', header: 'Ease Factor', aliases: ['Ease'] },
   { key: 'reps', header: 'Repetitions', aliases: ['Reps'] },
-  { key: 'cefr', header: 'CEFR' },
-  { key: 'meaning', header: 'Meaning (TR)', aliases: ['Meaning'] },
+  { key: 'stage', header: 'Interval Stage' },
+  { key: 'next', header: 'Next Review' },
   { key: 'example', header: 'Example', aliases: ['Example Sentence'] },
+  { key: 'mastered', header: 'Mastered?', aliases: ['Mastered'] },
 ];
 
 function renderVocabulary(rows) {

@@ -1,6 +1,6 @@
 import { motion } from 'motion/react';
 import { Check, Target } from '@phosphor-icons/react';
-import { FUNCTIONS, FUNCTION_INFO, LEVEL_INFO, SKILLS, bandLevel, cap, levelIndex, nextBand } from '../lib/cefr.js';
+import { BAND_GOALS, FUNCTIONS, FUNCTION_INFO, LEVEL_INFO, SKILLS, bandLevel, cap, levelIndex, nextBand } from '../lib/cefr.js';
 import { CefrLadder, LevelBadge, SKILL_ICONS, bandClasses } from './ui.jsx';
 import { MomentumBar, MomentumStats } from './momentum.jsx';
 
@@ -63,6 +63,23 @@ function Diagnostic({ diagnostic }) {
   );
 }
 
+/** What the current sub-band asks of the learner, and what the next one unlocks. */
+function BandGoal({ band }) {
+  const next = nextBand(band);
+  return (
+    <div className="space-y-1.5 border-l-2 border-line-strong pl-3 text-[13px]">
+      <p>
+        <span className="font-mono text-[11px] text-ink-3">{band}</span> <span className="text-ink-2">{BAND_GOALS[band]}</span>
+      </p>
+      {next !== band && (
+        <p className="text-ink-3">
+          <span className="font-mono text-[11px]">Next {next}</span> {BAND_GOALS[next]}
+        </p>
+      )}
+    </div>
+  );
+}
+
 function OverallMark({ band, compact = false }) {
   const level = bandLevel(band);
   const b = bandClasses(level);
@@ -113,6 +130,7 @@ export default function LearnerSheet({ profile }) {
       <motion.div initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }} className="hidden space-y-8 lg:block">
         <section className="space-y-4">
           <OverallMark band={profile.sub_band} />
+          <BandGoal band={profile.sub_band} />
           <MomentumBar profile={profile} />
           <MomentumStats profile={profile} />
           <div className="space-y-2">

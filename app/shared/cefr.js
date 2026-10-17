@@ -151,3 +151,19 @@ export const CAN_DO = {
 };
 
 export const canDoStatement = (skill, level, fn) => CAN_DO[skill]?.[level]?.[fn] ?? '';
+
+/** Action-oriented goal of each sub-band (CLAUDE.md section 3). The learner is judged on these, not on abstract rules. */
+export const BAND_GOALS = {
+  'A1.1': 'Can introduce themselves and express basic needs.',
+  'A1.2': 'Can describe daily routines and their immediate surroundings in simple terms.',
+  'A2.1': 'Can talk about past events and handle simple everyday transactions.',
+  'A2.2': 'Can describe plans, make basic comparisons and give simple directions.',
+  'B1.1': 'Can give and explain opinions on familiar topics.',
+  'B1.2': 'Can handle hypothetical situations and write everyday professional emails.',
+  'B2.1': 'Can build a clear argument and weigh pros and cons.',
+  'B2.2': 'Can speculate about the past and switch confidently between formal and informal register.',
+  'C1.1': 'Can express ideas fluently with emphasis, nuance and well-chosen idioms.',
+  'C1.2': 'Can argue abstract and complex topics with precise discourse control.',
+  'C2.1': 'Can resolve ambiguity and use irony and style deliberately.',
+  'C2.2': 'Can communicate with native-like rhetoric and sociolinguistic tact in any setting.',
+};

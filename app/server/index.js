@@ -23,6 +23,7 @@ import {
 } from './store.js';
 
 const PORT = Number(process.env.PORT ?? 3001);
+const WARMUP_MAX = 6; // CLAUDE.md section 1: at most 6 due words in the 3-minute warm-up
 const here = path.dirname(fileURLToPath(import.meta.url));
 const DIST = path.join(here, '..', 'dist');
 
@@ -39,7 +40,7 @@ app.put('/api/profile', async (req, res) => {
 });
 
 app.get('/api/vocabulary', async (req, res) => res.json(await readVocabulary()));
-app.get('/api/vocabulary/due', async (req, res) => res.json(await dueVocabulary(Number(req.query.limit) || 3)));
+app.get('/api/vocabulary/due', async (req, res) => res.json(await dueVocabulary(Math.min(WARMUP_MAX, Number(req.query.limit) || WARMUP_MAX))));
 app.post('/api/vocabulary/review', async (req, res) => res.json(await reviewVocabulary(req.body?.original, req.body?.grade ?? req.body?.result)));
 app.post('/api/vocabulary', async (req, res) => {
   const entries = Array.isArray(req.body) ? req.body : [req.body];

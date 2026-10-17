@@ -7,5 +7,5 @@ Words and phrases under SM-2 spaced repetition. Review intervals: 1, 3, 7, 14 an
 - **Ease Factor / Repetitions**: SM-2 ease (starts at 2.50, never below 1.30) and successful reviews in a row.
 - **Mastered?**: Yes after a successful review at the 30-day stage; mastered words still return on long intervals.
 
-| Date | Original | Upgraded | Interval Stage | Mastered? | Next Review | Ease Factor | Repetitions | CEFR | Meaning (TR) | Example |
+| Date | Original | Upgraded | Meaning (TR) | CEFR | Ease Factor | Repetitions | Interval Stage | Next Review | Example | Mastered? |
 |---|---|---|---|---|---|---|---|---|---|---|

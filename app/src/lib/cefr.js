@@ -1,6 +1,6 @@
 import { LEVELS } from '../../shared/cefr.js';
 
-export { LEVELS, SKILLS, BANDS, FUNCTIONS, FUNCTION_INFO, CAN_DO, bandLevel, nextBand, canDoId, canDoStatement } from '../../shared/cefr.js';
+export { LEVELS, SKILLS, BANDS, FUNCTIONS, FUNCTION_INFO, CAN_DO, bandLevel, nextBand, canDoId, canDoStatement, BAND_GOALS } from '../../shared/cefr.js';
 export const MASTERY = 80;
 
 export const LEVEL_INFO = {

@@ -85,7 +85,7 @@ test('migration produces the global-standard profile schema and SM-2 vocabulary 
   assert.equal(p.user, undefined);
   assert.equal(p.motivation, undefined);
   const vocabMd = await fs.readFile(path.join(tmp, 'vocabulary.md'), 'utf8');
-  assert.match(vocabMd, /\| Date \| Original \| Upgraded \| Interval Stage \| Mastered\? \| Next Review \| Ease Factor \| Repetitions \| CEFR \| Meaning \(TR\) \| Example \|/);
+  assert.match(vocabMd, /\| Date \| Original \| Upgraded \| Meaning \(TR\) \| CEFR \| Ease Factor \| Repetitions \| Interval Stage \| Next Review \| Example \| Mastered\? \|/);
   const [row] = await store.readVocabulary();
   assert.deepEqual([row.original, row.upgraded, row.meaning, row.stage, row.ease, row.next, row.due], ['get up', 'rise (formal)', 'kalkmak', '1d', '2.50', '2026-10-11', true]);
   assert.deepEqual(await store.migrateFiles(), [], 'second migration is a no-op');
