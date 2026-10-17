@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion } from 'motion/react';
 import { Eye, EyeSlash } from '@phosphor-icons/react';
 import { api } from '@/api';
@@ -9,9 +10,11 @@ const ease = [0.16, 1, 0.3, 1] as const;
 
 /**
  * Anonymous lock screen: a PIN field and a sign-in button, nothing that names the site.
- * The PIN is checked on the server (APP_SECRET_PIN); a correct PIN sets an HttpOnly session cookie.
+ * The PIN is checked on the server (APP_SECRET_PIN); a correct PIN sets an HttpOnly session cookie
+ * (a signed JWT) and the page continues to where the visitor was going.
  */
-export default function Gatekeeper({ onUnlock }: { onUnlock: () => void }) {
+export default function Gatekeeper({ next = '/' }: { next?: string }) {
+  const router = useRouter();
   const [pin, setPin] = useState('');
   const [show, setShow] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -28,13 +31,13 @@ export default function Gatekeeper({ onUnlock }: { onUnlock: () => void }) {
     setError(null);
     try {
       await api.verify(pin);
-      onUnlock();
+      router.replace(next);
+      router.refresh();
     } catch (err) {
       setError(err.message);
       setShake((n) => n + 1);
       setPin('');
-    } finally {
-      setBusy(false);
+      setBusy(false); // on success the button stays busy until the app has loaded
     }
   }
 

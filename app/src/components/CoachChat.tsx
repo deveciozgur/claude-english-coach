@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Marked } from 'marked';
 import { PaperPlaneRight, Stop, Sparkle, ArrowCounterClockwise, ChatsCircle } from '@phosphor-icons/react';
 import { streamChat } from '@/api';
+import type { ChatMessage } from '@/lib/api-contract';
 import { readStored, writeStored } from '@/lib/useActivity';
 import { Button, Panel } from './ui';
 
@@ -23,58 +24,103 @@ function loadHistory() {
   }
 }
 
-/** Free chat with the coach (Claude, CLAUDE.md as the system prompt), streamed token by token. */
+type ChatState = {
+  messages: ChatMessage[];
+  draft: string;
+  setDraft: (text: string) => void;
+  busy: boolean;
+  error: string | null;
+  send: (text: string) => void;
+  stop: () => void;
+  clear: () => void;
+};
+
+const ChatContext = createContext<ChatState | null>(null);
+
 /**
- * docked: the persistent right-hand column on wide screens (full height, its own scroll), so the chat
- * stays open while the learner moves between the curriculum, the vault and the studio.
+ * The conversation lives here, above the pages: the messages, the draft and a running stream survive
+ * every navigation (Çalışma, Müfredat, Kasa, Arşiv), whichever view shows the chat.
  */
-export default function CoachChat({ llm, seed = null, docked = false }: { llm: boolean; seed?: string | null; docked?: boolean }) {
-  const [messages, setMessages] = useState<{ role: string; content: string }[]>(loadHistory);
-  // A roadmap scenario arrives as a ready-to-send first message.
-  const [draft, setDraft] = useState(seed ?? '');
+export function ChatProvider({ children }: { children: React.ReactNode }) {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [draft, setDraft] = useState('');
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState(null);
-  const abort = useRef(null);
-  const end = useRef(null);
+  const [error, setError] = useState<string | null>(null);
+  const abort = useRef<AbortController | null>(null);
+
+  // Loaded after hydration (the server has no localStorage); nothing is saved before that.
+  const [loaded, setLoaded] = useState(false);
+  useEffect(() => {
+    setMessages(loadHistory());
+    setLoaded(true);
+  }, []);
+  useEffect(() => {
+    if (loaded && !busy) writeStored('coach.chat', JSON.stringify(messages.slice(-40)));
+  }, [messages, busy, loaded]);
+  useEffect(() => () => abort.current?.abort(), []);
+
+  const send = useCallback(
+    async (text: string) => {
+      const content = text.trim();
+      if (!content || busy) return;
+      const history: ChatMessage[] = [...messages, { role: 'user', content }];
+      setMessages([...history, { role: 'assistant', content: '' }]);
+      setDraft('');
+      setError(null);
+      setBusy(true);
+      abort.current = new AbortController();
+      try {
+        await streamChat(history, {
+          signal: abort.current.signal,
+          onText: (t) => setMessages((ms) => [...ms.slice(0, -1), { role: 'assistant', content: ms.at(-1).content + t }]),
+        });
+      } catch (e) {
+        if (e.name !== 'AbortError') setError(e.message);
+        setMessages((ms) => (ms.at(-1)?.content ? ms : ms.slice(0, -1)));
+      } finally {
+        setBusy(false);
+        abort.current = null;
+      }
+    },
+    [busy, messages],
+  );
+
+  const value = useMemo<ChatState>(
+    () => ({ messages, draft, setDraft, busy, error, send, stop: () => abort.current?.abort(), clear: () => setMessages([]) }),
+    [messages, draft, busy, error, send],
+  );
+  return <ChatContext.Provider value={value}>{children}</ChatContext.Provider>;
+}
+
+export function useChat(): ChatState {
+  const ctx = useContext(ChatContext);
+  if (!ctx) throw new Error('useChat must be used inside <ChatProvider>');
+  return ctx;
+}
+
+/**
+ * The chat view. docked: the persistent right-hand column on wide screens (full height, its own scroll);
+ * otherwise the full Koç page on smaller screens. Both read the same conversation from ChatProvider.
+ */
+export default function CoachChat({ llm, docked = false }: { llm: boolean; docked?: boolean }) {
+  const { messages, draft, setDraft, busy, error, send, stop, clear } = useChat();
+  const end = useRef<HTMLDivElement>(null);
   const scroller = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!busy) writeStored('coach.chat', JSON.stringify(messages.slice(-40)));
     // The docked column scrolls itself; scrollIntoView would also move the page behind it.
     if (docked && scroller.current) scroller.current.scrollTop = scroller.current.scrollHeight;
-    else end.current?.scrollIntoView({ block: 'end' });
-  }, [messages, busy]);
-
-  async function send(text) {
-    const content = text.trim();
-    if (!content || busy) return;
-    const history = [...messages, { role: 'user', content }];
-    setMessages([...history, { role: 'assistant', content: '' }]);
-    setDraft('');
-    setError(null);
-    setBusy(true);
-    abort.current = new AbortController();
-    try {
-      await streamChat(history, {
-        signal: abort.current.signal,
-        onText: (t) => setMessages((ms) => [...ms.slice(0, -1), { role: 'assistant', content: ms.at(-1).content + t }]),
-      });
-    } catch (e) {
-      if (e.name !== 'AbortError') setError(e.message);
-      setMessages((ms) => (ms.at(-1)?.content ? ms : ms.slice(0, -1)));
-    } finally {
-      setBusy(false);
-    }
-  }
+    else if (messages.length) end.current?.scrollIntoView({ block: 'end' });
+  }, [messages, docked]);
 
   const offline = !llm && (
     <p className={`rounded-xl border border-dashed border-line-strong px-4 py-3 text-ink-2 ${docked ? 'mx-4 mt-3 text-[12.5px]' : 'text-sm'}`}>
-      Yapay zekâ koçu çevrimdışı. <code className="font-mono">api.php</code> ile aynı klasördeki <code className="font-mono">.env</code> dosyasına <code className="font-mono">GEMINI_API_KEY</code> ekleyin. Çalışma görevleri çevrimdışı geri bildirimle çalışmaya devam eder.
+      Yapay zekâ koçu çevrimdışı. Sunucunun ortam değişkenlerine (veya <code className="font-mono">.env</code> dosyasına) <code className="font-mono">GEMINI_API_KEY</code> ekleyin. Çalışma görevleri çevrimdışı geri bildirimle çalışmaya devam eder.
     </p>
   );
 
   const newChat = messages.length > 0 && (
-    <Button variant="ghost" size="sm" onClick={() => setMessages([])} disabled={busy}>
+    <Button variant="ghost" size="sm" onClick={clear} disabled={busy}>
       <ArrowCounterClockwise size={14} /> Yeni sohbet
     </Button>
   );
@@ -144,7 +190,7 @@ export default function CoachChat({ llm, seed = null, docked = false }: { llm: b
           className={`min-h-12 flex-1 resize-none rounded-xl bg-sunk outline-none focus:ring-2 focus:ring-line-strong ${docked ? 'px-3 py-2.5 text-[14px]' : 'px-4 py-3'}`}
         />
         {busy ? (
-          <Button type="button" variant="secondary" onClick={() => abort.current?.abort()} aria-label="Durdur" className={docked ? 'w-10 px-0' : ''}>
+          <Button type="button" variant="secondary" onClick={stop} aria-label="Durdur" className={docked ? 'w-10 px-0' : ''}>
             <Stop size={16} /> {!docked && 'Durdur'}
           </Button>
         ) : (

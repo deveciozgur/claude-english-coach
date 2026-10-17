@@ -1,13 +1,14 @@
-// Triple-Layer feedback via Gemini (proxied by api.php, with CLAUDE.md as the system instruction),
+// Triple-Layer feedback via Gemini (through /api/feedback, with CLAUDE.md as the system instruction),
 // following the coach rules. Falls back to the offline heuristic engine when no API key is set
 // on the server or a request fails, so the app always works.
 
 import { heuristicFeedback, speakingMetrics } from './heuristics.ts';
 import { readErrors, readProfile } from './store.ts';
 import { bandStatus, curriculumState, getBand } from './curriculum.ts';
+import type { FeedbackRequest } from '../api-contract.ts';
 
 /** Sends a prompt and a JSON schema to the AI endpoint; resolves with the model's JSON text. */
-export type AskJson = (req: { prompt: string; schema: unknown }) => Promise<{ text: string; model?: string }>;
+export type AskJson = (req: FeedbackRequest) => Promise<{ text: string; model?: string }>;
 
 const str = { type: 'string' };
 const FEEDBACK_SCHEMA = {

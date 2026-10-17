@@ -22,7 +22,7 @@ export { LEVELS, SKILLS, addDays };
 
 // ---------- storage ----------
 // The store works on the coach files by name ('profile.json', 'sessions/2026-10-17.md', ...).
-// Where they live is up to the adapter: in the browser, an in-memory copy synced through api.php;
+// Where they live is up to the adapter: in the browser, an in-memory copy synced through /api/state;
 // in tests, a temporary folder on disk.
 export interface StateFS {
   /** File contents, or null when the file does not exist. */
@@ -731,6 +731,3 @@ export const migrateFiles = (): Promise<string[]> =>
     return changed;
   });
 
-export async function readCoachInstructions() {
-  return readText(file('CLAUDE.md'));
-}

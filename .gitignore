@@ -4,9 +4,8 @@ dist/
 .DS_Store
 release/
 .env
+.env*.local
 .next/
 *.tsbuildinfo
 next-env.d.ts
 app/data/
-app/out/
-app/hosting-release/

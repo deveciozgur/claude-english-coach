@@ -1,12 +1,13 @@
-// The app's data layer. On shared hosting there is no Node server: the coach logic (SM-2, sub-bands,
-// error ledger, sessions) runs here in the browser on the files api.php serves, and every change is
-// written straight back to the host's disk. AI calls go through api.php to Gemini.
+// The app's data layer. The coach logic (SM-2, sub-bands, error ledger, sessions) runs here in the
+// browser on the files /api/state serves, and every change is written straight back to the server's disk
+// (atomically, with a version check). AI calls go through /api/feedback and /api/chat to Gemini.
 
 import * as store from '@/lib/core/store';
 import { generateFeedback } from '@/lib/core/feedback';
-import { ApiError, ENDPOINT, RemoteFS, call } from '@/lib/remote-fs';
+import { CSRF_HEADER, CSRF_VALUE, type AuthStatus, type ChatEvent, type ChatMessage, type ChatRequest, type FeedbackRequest, type FeedbackResponse, type VerifyResponse } from '@/lib/api-contract';
+import { ApiError, LOCKED_EVENT, RemoteFS, request } from '@/lib/remote-fs';
 
-type AuthStatus = { required: boolean; authenticated: boolean; ai: boolean; model: string; version: string };
+export { LOCKED_EVENT };
 
 const files = new RemoteFS();
 store.useFileSystem(files);
@@ -52,22 +53,20 @@ export function refreshOnFocus(onChange: () => void) {
   return () => document.removeEventListener('visibilitychange', handler);
 }
 
-const askJson = (req: { prompt: string; schema: unknown }) => call<{ text: string; model?: string }>('feedback', req);
+const askJson = (req: FeedbackRequest) => request<FeedbackResponse>('/api/feedback', { body: req });
 
 export const api = {
   async authStatus() {
-    const s = await call<AuthStatus>('auth_status');
+    const s = await request<AuthStatus>('/api/auth');
     aiReady = s.ai;
     return s;
   },
-  verify: (pin: string) => call('verify', { pin }),
+  verify: (pin: string) => request<VerifyResponse>('/api/auth', { body: { pin } }),
   async logout() {
-    await call('logout', {});
+    await request<VerifyResponse>('/api/auth', { method: 'DELETE' });
     files.loaded = false;
   },
-  health: () => call<AuthStatus>('auth_status').then((s) => ({ ok: true, llm: s.ai, model: s.model, version: s.version })),
 
-  state: () => read(async () => ({ profile: await store.readProfile(), vocabulary: await store.readVocabulary(), errors: await store.readErrors() })),
   profile: () => read(() => store.readProfile()),
   saveProfile: (profile) => mutate(() => store.writeProfile(profile)),
   vocabulary: () => read(() => store.readVocabulary()),
@@ -87,22 +86,23 @@ export const api = {
 };
 
 /**
- * Streams a coach reply from api.php (?action=chat, Server-Sent Events relayed from Gemini).
+ * Streams a coach reply from POST /api/chat (Server-Sent Events relayed from Gemini).
  * Calls onText for every chunk and resolves when the reply is complete. Pass an AbortSignal to stop it.
  */
-export async function streamChat(messages: { role: string; content: string }[], { onText, signal }: { onText?: (t: string) => void; signal?: AbortSignal } = {}) {
+export async function streamChat(messages: ChatMessage[], { onText, signal }: { onText?: (t: string) => void; signal?: AbortSignal } = {}) {
   await ready();
-  const res = await fetch(`${ENDPOINT}?action=chat`, {
+  const body: ChatRequest = { messages, context: await chatContext() };
+  const res = await fetch('/api/chat', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'X-Requested-With': 'lumos' },
-    body: JSON.stringify({ messages, context: await chatContext() }),
+    headers: { 'Content-Type': 'application/json', [CSRF_HEADER]: CSRF_VALUE },
+    body: JSON.stringify(body),
     signal,
     credentials: 'same-origin',
   });
-  if (!res.ok) {
+  if (!res.ok || !res.body) {
     const data = await res.json().catch(() => ({}));
-    if (res.status === 401 && data.locked) window.dispatchEvent(new Event('lumos:locked'));
-    throw new Error(data.error ?? `İstek başarısız (${res.status})`);
+    if (res.status === 401 && data.locked) window.dispatchEvent(new Event(LOCKED_EVENT));
+    throw new ApiError(data.error ?? `İstek başarısız (${res.status})`, res.status, Boolean(data.locked));
   }
   const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = '';
@@ -115,14 +115,14 @@ export async function streamChat(messages: { role: string; content: string }[], 
     for (const ev of events) {
       const line = ev.split('\n').find((l) => l.startsWith('data: '));
       if (!line) continue;
-      const data = JSON.parse(line.slice(6));
-      if (data.error) throw new Error(data.error);
-      if (data.text) onText?.(data.text);
+      const data = JSON.parse(line.slice(6)) as ChatEvent;
+      if ('error' in data) throw new Error(data.error);
+      if ('text' in data) onText?.(data.text);
     }
   }
 }
 
-/** The learner's current state for the coach's system instruction (api.php adds it after CLAUDE.md). */
+/** The learner's current state for the coach's system instruction (the chat route adds it after the coaching rules). */
 async function chatContext() {
   const [profile, errors, due] = await Promise.all([store.readProfile(), store.readErrors(), store.dueVocabulary(6)]);
   const g = profile.gamification;

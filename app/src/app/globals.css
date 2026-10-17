@@ -43,12 +43,12 @@
 
 :root[data-theme='light'] {
   color-scheme: light;
-  --paper: #f4f4f5;
+  --paper: #f9fafb;
   --paper-raised: #ffffff;
-  --paper-sunk: #ececee;
-  --panel: #fafafa;
-  --hover: #e9e9ec;
-  --line: #e4e4e7;
+  --paper-sunk: #f3f4f6;
+  --panel: #ffffff;
+  --hover: #f0f1f3;
+  --line: #e5e7eb;
   --line-strong: #d4d4d8;
   --ink: #18181b;
   --ink-2: #52525b;

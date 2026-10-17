@@ -1,10 +1,12 @@
-// The coach files as the browser sees them: loaded once from api.php (?action=get_state), changed in
-// memory by the store, and written back (?action=save_state) after every operation. A version number
-// guards against two devices overwriting each other: on a conflict the store reloads and re-runs.
+// The coach files as the browser sees them: loaded once from GET /api/state, changed in memory by the
+// store, and written back (PUT /api/state) after every operation. A version number guards against two
+// devices overwriting each other: on a conflict the store reloads and re-runs.
 
+import { CSRF_HEADER, CSRF_VALUE, type ApiErrorBody, type SaveRequest, type SaveResponse, type SessionPayload, type StatePayload } from './api-contract';
 import type { StateFS } from './core/store';
 
-export const ENDPOINT = 'api.php';
+/** Fired when the session has expired; the app shell sends the visitor to /unlock. */
+export const LOCKED_EVENT = 'seyyahname:locked';
 
 export class ApiError extends Error {
   status: number;
@@ -16,26 +18,25 @@ export class ApiError extends Error {
   }
 }
 
-/** Calls api.php. POST bodies are JSON; the custom header blocks cross-site form posts. */
-export async function call<T = any>(action: string, body?: unknown, query: Record<string, string> = {}): Promise<T> {
-  const qs = new URLSearchParams({ action, ...query });
-  const res = await fetch(`${ENDPOINT}?${qs}`, {
-    method: body === undefined ? 'GET' : 'POST',
-    headers: { 'X-Requested-With': 'lumos', ...(body === undefined ? {} : { 'Content-Type': 'application/json' }) },
-    body: body === undefined ? undefined : JSON.stringify(body),
+/** Calls an app/api route. Bodies are JSON; the custom header blocks cross-site requests. */
+export async function request<T>(path: string, init: { method?: 'GET' | 'POST' | 'PUT' | 'DELETE'; body?: unknown; signal?: AbortSignal } = {}): Promise<T> {
+  const method = init.method ?? (init.body === undefined ? 'GET' : 'POST');
+  const res = await fetch(path, {
+    method,
+    headers: { [CSRF_HEADER]: CSRF_VALUE, ...(init.body === undefined ? {} : { 'Content-Type': 'application/json' }) },
+    body: init.body === undefined ? undefined : JSON.stringify(init.body),
     cache: 'no-store',
     credentials: 'same-origin',
+    signal: init.signal,
   });
-  const data = await res.json().catch(() => null);
+  const data = (await res.json().catch(() => null)) as (T & Partial<ApiErrorBody>) | null;
   if (!res.ok) {
-    if (res.status === 401 && data?.locked) window.dispatchEvent(new Event('lumos:locked'));
-    throw new ApiError(data?.error ?? (res.status === 404 ? 'api.php, index.html ile aynı klasörde bulunamadı' : `İstek başarısız (${res.status})`), res.status, Boolean(data?.locked));
+    if (res.status === 401 && data?.locked) window.dispatchEvent(new Event(LOCKED_EVENT));
+    throw new ApiError(data?.error ?? `İstek başarısız (${res.status})`, res.status, Boolean(data?.locked));
   }
-  if (data === null) throw new ApiError('api.php JSON yanıtı vermedi. Sunucuda PHP etkin mi?', res.status);
+  if (data === null) throw new ApiError('Sunucu JSON yanıtı vermedi.', res.status);
   return data as T;
 }
-
-type StatePayload = { version: number; files: Record<string, string>; sessions: string[] };
 
 export class RemoteFS implements StateFS {
   private files = new Map<string, string>();
@@ -45,7 +46,7 @@ export class RemoteFS implements StateFS {
   loaded = false;
 
   async load() {
-    const s = await call<StatePayload>('get_state');
+    const s = await request<StatePayload>('/api/state');
     this.files = new Map(Object.entries(s.files));
     this.sessions = new Set(s.sessions);
     this.dirty.clear();
@@ -58,10 +59,10 @@ export class RemoteFS implements StateFS {
   }
 
   async read(name: string): Promise<string | null> {
-    if (this.files.has(name)) return this.files.get(name);
+    if (this.files.has(name)) return this.files.get(name) ?? null;
     const m = /^sessions\/(\d{4}-\d{2}-\d{2})\.md$/.exec(name);
     if (!m || !this.sessions.has(`${m[1]}.md`)) return null;
-    const { content } = await call<{ content: string }>('get_session', undefined, { date: m[1] });
+    const { content } = await request<SessionPayload>(`/api/state?session=${m[1]}`);
     this.files.set(name, content);
     return content;
   }
@@ -80,8 +81,8 @@ export class RemoteFS implements StateFS {
   /** Writes every changed file in one request. Throws ApiError 409 if another device saved first. */
   async flush() {
     if (!this.dirty.size) return;
-    const files = Object.fromEntries([...this.dirty].map((n) => [n, this.files.get(n)]));
-    const { version } = await call<{ version: number }>('save_state', { version: this.version, files });
+    const body: SaveRequest = { version: this.version, files: Object.fromEntries([...this.dirty].map((n) => [n, this.files.get(n) ?? ''])) };
+    const { version } = await request<SaveResponse>('/api/state', { method: 'PUT', body });
     this.version = version;
     this.dirty.clear();
   }

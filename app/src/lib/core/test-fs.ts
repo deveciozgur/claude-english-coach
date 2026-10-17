@@ -1,5 +1,5 @@
 // Test helper (Node only, never imported by the app): a StateFS on a real folder,
-// laid out like the data/ folder api.php keeps on the host.
+// laid out like the data/ folder the server keeps (src/lib/server/storage.ts).
 import fs from 'node:fs/promises';
 import path from 'node:path';
 
