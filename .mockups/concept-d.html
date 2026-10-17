@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Concept D · Editorial / Academic Press · Lumos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,opsz,wght@0,8..60,400;0,8..60,600;0,8..60,700;1,8..60,400;1,8..60,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* Concept D: The Atlantic / university press. Serif reading text, hairline rules, footnotes as corrections, one crimson accent. */
+  :root {
+    --paper: #fcfbf8; --paper-2: #f3f1ec; --rule: #d8d4cc; --rule-2: #121212;
+    --ink: #121212; --ink-2: #4a4a4a; --ink-3: #8a857c;
+    --crimson: #b3122e; --navy: #1f3a5f; --marker: #fff1a8; --green: #2f6b3a;
+    --serif: 'Source Serif 4', Georgia, serif; --sans: 'IBM Plex Sans', system-ui, sans-serif; --mono: 'IBM Plex Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { font: 17px/1.6 var(--serif); color: var(--ink); background: var(--paper); font-optical-sizing: auto; }
+  button, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; background: none; }
+  .sans { font-family: var(--sans); } .mono { font-family: var(--mono); }
+  /* masthead */
+  .mast { border-bottom: 1px solid var(--rule-2); padding: 14px 40px 0; }
+  .mast-top { display: flex; justify-content: space-between; font: 12px var(--sans); color: var(--ink-3); letter-spacing: .02em; }
+  .mast h1 { text-align: center; font-weight: 700; font-size: 46px; letter-spacing: -.01em; line-height: 1.1; margin: 4px 0 2px; }
+  .mast h1 i { font-weight: 400; color: var(--crimson); }
+  .mast .tag { text-align: center; font: italic 15px var(--serif); color: var(--ink-2); }
+  nav.sections { display: flex; justify-content: center; gap: 30px; border-top: 1px solid var(--rule); margin-top: 12px; padding: 9px 0; font: 500 12.5px var(--sans); text-transform: uppercase; letter-spacing: .12em; }
+  nav.sections button { color: var(--ink-2); padding-bottom: 2px; border-bottom: 2px solid transparent; }
+  nav.sections button[aria-current='page'] { color: var(--ink); border-bottom-color: var(--crimson); }
+  .page { display: grid; grid-template-columns: 250px minmax(0, 1fr) 340px; gap: 0; max-width: 1440px; margin: 0 auto; }
+  .col { padding: 26px 28px 60px; }
+  .col + .col { border-left: 1px solid var(--rule); }
+  .kicker { font: 600 11.5px var(--sans); text-transform: uppercase; letter-spacing: .14em; color: var(--crimson); margin-bottom: 8px; }
+  /* dossier */
+  .dossier h2 { font-size: 22px; font-weight: 600; line-height: 1.2; }
+  .cefr { display: flex; align-items: baseline; gap: 10px; margin: 14px 0 4px; border-top: 1px solid var(--rule-2); padding-top: 12px; }
+  .cefr b { font-size: 54px; font-weight: 700; line-height: 1; letter-spacing: -.02em; }
+  .cefr span { font: italic 16px var(--serif); color: var(--ink-2); }
+  .dossier .goal { font-size: 15px; color: var(--ink-2); font-style: italic; }
+  .progress { margin: 14px 0 4px; height: 2px; background: var(--rule); position: relative; }
+  .progress i { position: absolute; inset: 0 67% 0 0; background: var(--crimson); }
+  .progress-l { display: flex; justify-content: space-between; font: 11px var(--mono); color: var(--ink-3); }
+  table { width: 100%; border-collapse: collapse; margin-top: 18px; font-family: var(--sans); font-size: 13px; }
+  th, td { text-align: left; padding: 7px 0; border-bottom: 1px solid var(--rule); font-weight: 400; }
+  th { color: var(--ink-3); } td { text-align: right; font-family: var(--mono); font-size: 13px; }
+  tr:first-child th, tr:first-child td { border-top: 1px solid var(--rule-2); }
+  .skills { margin-top: 22px; font-family: var(--sans); font-size: 13px; }
+  .skills div { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dotted var(--rule); }
+  .skills span.t { font-family: var(--mono); font-size: 11.5px; color: var(--ink-3); letter-spacing: .1em; }
+  .skills span.t b { color: var(--crimson); font-weight: 500; }
+  /* article */
+  .article { max-width: 640px; }
+  .article h2 { font-size: 40px; line-height: 1.12; font-weight: 700; letter-spacing: -.015em; }
+  .dek { font-size: 20px; font-style: italic; color: var(--ink-2); margin-top: 8px; line-height: 1.45; }
+  .byline { font: 13px var(--sans); color: var(--ink-3); margin: 14px 0 22px; padding-bottom: 14px; border-bottom: 1px solid var(--rule); }
+  .byline b { color: var(--ink); font-weight: 500; }
+  .manuscript { position: relative; background: #fff; border: 1px solid var(--rule); padding: 18px 22px 12px; }
+  .manuscript .label { font: 600 11px var(--sans); letter-spacing: .14em; text-transform: uppercase; color: var(--ink-3); margin-bottom: 6px; }
+  .manuscript textarea { width: 100%; border: 0; resize: none; min-height: 84px; outline: none; font: 18px/1.7 var(--serif); background: none; }
+  .manuscript footer { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid var(--rule); padding-top: 10px; font: 12px var(--mono); color: var(--ink-3); }
+  .btn { font: 600 13px var(--sans); letter-spacing: .04em; background: var(--ink); color: var(--paper); padding: 8px 16px; }
+  .btn.alt { background: none; color: var(--ink); box-shadow: inset 0 0 0 1px var(--ink); }
+  sup.fn { color: var(--crimson); font: 600 11px var(--sans); }
+  .pull { margin: 30px 0 8px; padding: 18px 0; border-top: 3px double var(--rule-2); border-bottom: 1px solid var(--rule); }
+  .pull blockquote { font-size: 24px; line-height: 1.35; font-weight: 600; letter-spacing: -.005em; }
+  .pull blockquote::before { content: '“'; color: var(--crimson); font-size: 52px; line-height: 0; vertical-align: -18px; margin-right: 4px; }
+  .pull cite { display: block; margin-top: 8px; font: normal 13px var(--sans); color: var(--ink-3); }
+  .revised h3, .notes h3 { font: 600 11.5px var(--sans); text-transform: uppercase; letter-spacing: .14em; margin: 26px 0 8px; display: flex; gap: 10px; align-items: baseline; }
+  .revised h3 span, .notes h3 span { font: italic 14px var(--serif); text-transform: none; letter-spacing: 0; color: var(--ink-3); }
+  .revised p { font-size: 19px; line-height: 1.75; }
+  mark { background: linear-gradient(transparent 55%, var(--marker) 55%); color: inherit; padding: 0 1px; }
+  .notes ol { list-style: none; padding: 0; border-top: 1px solid var(--rule-2); }
+  .note { border-bottom: 1px solid var(--rule); }
+  .note > button { width: 100%; display: grid; grid-template-columns: 26px 1fr auto; gap: 8px; align-items: baseline; text-align: left; padding: 10px 0; }
+  .note .n { font: 600 13px var(--sans); color: var(--crimson); }
+  .note s { color: var(--ink-3); text-decoration-color: var(--crimson); }
+  .note .cat { font: italic 14px var(--serif); color: var(--ink-3); }
+  .note .detail { display: none; padding: 0 0 12px 34px; font-size: 15px; color: var(--ink-2); }
+  .note[data-open='true'] .detail { display: block; }
+  .ipa { font-family: var(--mono); font-size: 13px; color: var(--navy); }
+  .colophon { display: flex; gap: 26px; margin-top: 26px; font: 13px var(--sans); color: var(--ink-3); }
+  .colophon b { display: block; font: 700 22px var(--serif); color: var(--ink); }
+  /* correspondence */
+  .corr h2 { font-size: 22px; font-weight: 600; }
+  .corr .dek { font-size: 15px; }
+  .log { margin-top: 16px; display: flex; flex-direction: column; gap: 16px; max-height: 560px; overflow: auto; }
+  .letter { border-top: 1px solid var(--rule-2); padding-top: 8px; }
+  .letter .from { font: 600 11px var(--sans); text-transform: uppercase; letter-spacing: .14em; color: var(--ink-3); }
+  .letter.me p { font-style: italic; }
+  .letter .r { font-size: 15px; margin-top: 6px; }
+  .letter .r b { font: 600 11px var(--sans); text-transform: uppercase; letter-spacing: .12em; color: var(--crimson); margin-right: 6px; }
+  .corr form { margin-top: 18px; border-top: 1px solid var(--rule-2); padding-top: 10px; }
+  .corr textarea { width: 100%; border: 1px solid var(--rule); background: #fff; padding: 10px 12px; resize: none; height: 70px; outline: none; font: italic 16px var(--serif); }
+  .corr form div { display: flex; justify-content: space-between; align-items: center; margin-top: 8px; font: 12px var(--sans); color: var(--ink-3); }
+  /* vault */
+  .flash { border-top: 3px double var(--rule-2); border-bottom: 1px solid var(--rule); padding: 26px 0; margin-top: 20px; }
+  .flash .word { font-size: 54px; font-weight: 700; letter-spacing: -.02em; }
+  .flash .ans { display: none; font-size: 18px; color: var(--ink-2); margin-top: 6px; }
+  .flash[data-revealed='true'] .ans { display: block; }
+  .flash[data-revealed='true'] [data-reveal] { display: none; }
+  .q { display: none; grid-template-columns: repeat(6, 1fr); gap: 0; margin-top: 20px; border: 1px solid var(--ink); }
+  .flash[data-revealed='true'] .q { display: grid; }
+  .q button { padding: 10px 0; border-left: 1px solid var(--ink); font: 13px var(--sans); }
+  .q button:first-child { border-left: 0; }
+  .q button b { display: block; font: 700 20px var(--serif); }
+  .q button:hover { background: var(--ink); color: var(--paper); }
+  [hidden] { display: none !important; }
+  @media (max-width: 1180px) { .page { grid-template-columns: 230px minmax(0, 1fr); } .corr { display: none; } body[data-active='coach'] .corr { display: block; grid-column: 2; border-left: 1px solid var(--rule); } }
+  @media (max-width: 760px) {
+    .mast { padding: 10px 16px 0; }
+    .mast-top span:last-child { display: none; }
+    .mast h1 { font-size: 34px; }
+    .mast .tag { font-size: 13px; }
+    nav.sections { gap: 16px; font-size: 11px; letter-spacing: .08em; overflow-x: auto; justify-content: space-between; }
+    .page { display: block; }
+    .col { padding: 18px 16px 28px; }
+    .col + .col { border-left: 0; border-top: 1px solid var(--rule-2); }
+    .dossier { display: grid; grid-template-columns: auto 1fr; gap: 0 14px; align-items: end; }
+    .dossier > .kicker, .dossier > h2, .dossier .skills { display: none; }
+    .cefr { margin: 0; border-top: 0; padding-top: 0; }
+    .cefr b { font-size: 46px; }
+    .dossier .goal { font-size: 14px; }
+    .dossier .progress, .dossier .progress-l, .dossier table { grid-column: 1 / -1; }
+    table { margin-top: 12px; }
+    table tbody { display: grid; grid-template-columns: repeat(4, 1fr); }
+    table tr { display: flex; flex-direction: column-reverse; }
+    th, td { text-align: left; padding: 5px 0; font-size: 11px; }
+    td { font-size: 15px; font-family: var(--serif); font-weight: 700; }
+    tr:first-child th, tr:first-child td { border-top: 0; }
+    .article h2 { font-size: 32px; }
+    .dek { font-size: 17px; }
+    .corr { display: none; }
+    body[data-active='coach'] .corr { display: block; border-top: 1px solid var(--rule-2); }
+    .q { grid-template-columns: repeat(3, 1fr); }
+    .q button:nth-child(4) { border-left: 0; } .q button:nth-child(n+4) { border-top: 1px solid var(--ink); }
+  }
+</style>
+</head>
+<body data-start="studio">
+<header class="mast">
+  <div class="mast-top"><span>Vol. 1 · No. 3 · Friday, 17 October 2026</span><span>Özgür Deveci · Lumos AI English Coach v1.0</span></div>
+  <h1>The <i>Lumos</i> Review</h1>
+  <p class="tag">A personal course in English, from A1 to C2</p>
+  <nav class="sections" aria-label="Main">
+    <button data-nav="studio">Studio</button><button data-nav="coach">Correspondence</button><button data-nav="vault">Vault</button><button data-nav="archive">Archive</button>
+  </nav>
+</header>
+<div class="page">
+  <aside class="col dossier">
+    <div class="kicker">Learner dossier</div>
+    <h2>Mehmet’s progress</h2>
+    <div class="cefr"><b>A1.1</b><span>Beginner</span></div>
+    <p class="goal">Can introduce themselves and express basic needs.</p>
+    <div class="progress"><i></i></div>
+    <div class="progress-l"><span>toward A1.2</span><span>4 / 12</span></div>
+    <table><tbody>
+      <tr><th>Streak</th><td>3 days</td></tr>
+      <tr><th>Experience</th><td>195 XP</td></tr>
+      <tr><th>Vault due</th><td>2 of 6</td></tr>
+      <tr><th>Vault confidence</th><td>54 / 100</td></tr>
+    </tbody></table>
+    <div class="skills">
+      <div>Reading <span class="t"><b>T I</b> E</span></div>
+      <div>Writing <span class="t">T <b>I</b> E</span></div>
+      <div>Listening <span class="t">T I E</span></div>
+      <div>Speaking <span class="t">T I E</span></div>
+    </div>
+  </aside>
+
+  <main class="col">
+    <article class="article" data-view="studio">
+      <div class="kicker">Writing · Interactional · A1</div>
+      <h2>About Me</h2>
+      <p class="dek">Introduce yourself in thirty to sixty words: your name, age, city, work, and two things you enjoy.</p>
+      <div class="byline">Assessed by <b>Lumos</b> with Gemini · CEFR Companion Volume criteria</div>
+      <div class="manuscript">
+        <div class="label">Manuscript</div>
+        <textarea aria-label="Your text">hello my name is Mehmet. i have 30 years. I work in a office and I like football because it is fun.</textarea>
+        <footer><span>22 words · 3 notes</span><button class="btn">Submit for review</button></footer>
+      </div>
+
+      <div class="pull">
+        <div class="kicker" style="color:var(--green)">Strength Recognition</div>
+        <blockquote>I like football because it is fun.</blockquote>
+        <cite>Linking two ideas with “because” is exactly how fluent writers build an argument.</cite>
+      </div>
+
+      <section class="revised">
+        <h3>Natural Recast <span>the revised draft</span></h3>
+        <p><mark>Hello,</mark> my name is Mehmet. <mark>I am</mark> 30 <mark>years old</mark>.<sup class="fn">1</sup> I work in <mark>an</mark> office<sup class="fn">2</sup> and I like football because it is fun.</p>
+      </section>
+
+      <section class="notes">
+        <h3>Polish <span>editor’s notes · the meaning was already clear</span></h3>
+        <ol>
+          <li class="note" data-item data-open="true"><button data-toggle aria-expanded="true"><span class="n">1.</span><span><s>i have 30 years</s> → I am 30 years old</span><span class="cat">verb choice</span></button><div class="detail">In English, age takes <b>be</b>, not <b>have</b> (TR: 30 yaşındayım). <span class="ipa">years /jɪəz/</span></div></li>
+          <li class="note" data-item><button data-toggle aria-expanded="false"><span class="n">2.</span><span><s>a office</s> → an office</span><span class="cat">articles</span></button><div class="detail">“An” precedes a vowel sound. <span class="ipa">/ˈɒfɪs/</span></div></li>
+          <li class="note" data-item><button data-toggle aria-expanded="false"><span class="n">3.</span><span><s>i</s> → I</span><span class="cat">capitalisation</span></button><div class="detail">The first-person pronoun is always capitalised.</div></li>
+        </ol>
+      </section>
+      <div class="colophon"><span><b>78</b>score</span><span><b>A1</b>estimated</span><span><b>enjoyable</b>for “fun” · C1: exhilarating</span></div>
+    </article>
+
+    <article class="article" data-view="vault" hidden>
+      <div class="kicker">The Vault · SM-2</div>
+      <h2>Two words are due for review</h2>
+      <p class="dek">Recall the meaning before you turn the page, then grade your memory from 0 to 5.</p>
+      <div class="flash" data-card>
+        <div class="mono" style="font-size:12px;color:var(--ink-3)">A1 · interval 1 day · ease 2.50</div>
+        <div class="word" data-card-word>next to</div>
+        <div class="ans"><div data-card-meaning style="font-weight:600;color:var(--ink)"></div><div data-card-example style="font-style:italic"></div><div class="sans" style="font-size:13px">Higher register: <span data-card-up></span></div></div>
+        <button class="btn alt" data-reveal style="margin-top:18px">Turn the page</button>
+        <div class="q"><button data-q="0"><b>0</b>blackout</button><button data-q="1"><b>1</b>wrong</button><button data-q="2"><b>2</b>almost</button><button data-q="3"><b>3</b>hard</button><button data-q="4"><b>4</b>good</button><button data-q="5"><b>5</b>perfect</button></div>
+        <p data-card-log class="mono" style="font-size:12px;color:var(--ink-3);margin-top:12px"></p>
+      </div>
+    </article>
+
+    <article class="article" data-view="archive" hidden>
+      <div class="kicker">Archive</div>
+      <h2>Session of 17 October</h2>
+      <p class="dek">Two activities, two reviews, 195 XP, a three-day streak. Next: one Evaluative reading task at 80% or above.</p>
+    </article>
+  </main>
+
+  <section class="col corr" data-view="studio coach" aria-label="Correspondence with the coach">
+    <div class="kicker">Correspondence</div>
+    <h2>Letters to the coach</h2>
+    <p class="dek">Ask anything; Lumos answers strength first.</p>
+    <div class="log" id="log-d">
+      <div class="letter me"><div class="from">You wrote</div><p>Can you check: “I am working in a office since 2020.”</p></div>
+      <div class="letter"><div class="from">Lumos replies</div>
+        <p class="r"><b>Strength</b>“Since 2020” is precisely the right time expression.</p>
+        <p class="r"><b>Recast</b>I have been working in an office since 2020.</p>
+        <p class="r"><b>Polish</b>With “since”, English prefers the present perfect continuous.</p>
+      </div>
+    </div>
+    <form data-chat-form="#log-d"><textarea aria-label="Your letter">I live in Istanbul since five years.</textarea><div><span>Gemini · rules from CLAUDE.md</span><button class="btn">Send letter</button></div></form>
+  </section>
+</div>
+<template data-tpl="user"><div class="letter me"><div class="from">You wrote</div><p data-text></p></div></template>
+<template data-tpl="bot"><div class="letter"><div class="from">Lumos replies</div><p class="r" data-row="Strength" hidden><b>Strength</b>“Since” is right for a starting point in time.</p><p class="r" data-row="Recast" hidden><b>Recast</b>I have lived in Istanbul for five years.</p><p class="r" data-row="Polish" hidden><b>Polish</b>A length of time takes “for”, not “since”.</p></div></template>
+<script src="shared.js"></script>
+</body>
+</html>

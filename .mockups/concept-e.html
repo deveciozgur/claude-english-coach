@@ -1,0 +1,249 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Concept E · Glassmorphism / Spatial · Lumos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  /* Concept E: AI-lab spatial UI. Floating frosted panels over a slow neon field; gradient strokes mark the three feedback layers.
+     Glass is an approximation with backdrop-filter; prefers-reduced-transparency gets solid panels. */
+  :root {
+    --void: #05070f; --glass: rgba(255, 255, 255, .055); --glass-2: rgba(255, 255, 255, .09); --stroke: rgba(255, 255, 255, .12); --stroke-2: rgba(255, 255, 255, .2);
+    --ink: #f1f5f9; --ink-2: #94a3b8; --ink-3: #64748b;
+    --cyan: #22d3ee; --violet: #8b5cf6; --pink: #f472b6; --lime: #a3e635; --amber: #fbbf24;
+    --grad: linear-gradient(135deg, var(--cyan), var(--violet) 55%, var(--pink));
+    --sans: 'Sora', system-ui, sans-serif; --mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  html { color-scheme: dark; }
+  body { font: 300 14px/1.6 var(--sans); color: var(--ink); background: var(--void); min-height: 100dvh; overflow-x: hidden; }
+  body::before { content: ''; position: fixed; inset: -20%; z-index: -1; background:
+    radial-gradient(30% 35% at 18% 20%, rgba(34, 211, 238, .28), transparent 70%),
+    radial-gradient(28% 32% at 82% 18%, rgba(139, 92, 246, .32), transparent 70%),
+    radial-gradient(35% 40% at 60% 88%, rgba(244, 114, 182, .22), transparent 70%),
+    radial-gradient(25% 30% at 8% 85%, rgba(163, 230, 53, .10), transparent 70%); animation: drift 26s ease-in-out infinite alternate; }
+  body::after { content: ''; position: fixed; inset: 0; z-index: -1; background-image: linear-gradient(rgba(255,255,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,.035) 1px, transparent 1px); background-size: 48px 48px; mask-image: radial-gradient(circle at 50% 40%, #000 30%, transparent 75%); }
+  @keyframes drift { to { transform: translate3d(3%, -2%, 0) rotate(6deg); } }
+  @media (prefers-reduced-motion: reduce) { body::before { animation: none; } }
+  button, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; background: none; }
+  .mono { font-family: var(--mono); }
+  .glass { background: var(--glass); border: 1px solid var(--stroke); border-radius: 24px; backdrop-filter: blur(22px) saturate(140%); -webkit-backdrop-filter: blur(22px) saturate(140%); box-shadow: 0 1px 0 rgba(255,255,255,.08) inset, 0 20px 60px -20px rgba(0,0,0,.6); }
+  @media (prefers-reduced-transparency: reduce) { .glass { background: #10142a; backdrop-filter: none; } }
+  .app { display: grid; grid-template-columns: 276px minmax(0, 1fr) 372px; gap: 16px; padding: 16px; min-height: 100dvh; }
+  /* sidebar */
+  aside { padding: 20px 16px; display: flex; flex-direction: column; gap: 18px; height: calc(100dvh - 32px); position: sticky; top: 16px; }
+  .brand { display: flex; align-items: center; gap: 10px; padding: 0 4px; }
+  .orb { width: 30px; height: 30px; border-radius: 50%; background: var(--grad); box-shadow: 0 0 24px rgba(139,92,246,.7); }
+  .brand b { font-weight: 600; letter-spacing: .02em; } .brand span { margin-left: auto; font: 11px var(--mono); color: var(--ink-2); padding: 2px 8px; border-radius: 999px; border: 1px solid var(--stroke); }
+  nav.side { display: grid; gap: 4px; }
+  nav.side button { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 14px; color: var(--ink-2); font-weight: 400; text-align: left; border: 1px solid transparent; }
+  nav.side button:hover { background: var(--glass); color: var(--ink); }
+  nav.side button[aria-current='page'] { background: var(--glass-2); border-color: var(--stroke-2); color: var(--ink); box-shadow: 0 0 20px -6px rgba(34,211,238,.5); }
+  nav.side .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--ink-3); }
+  nav.side button[aria-current='page'] .dot { background: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+  .orbit { position: relative; display: grid; place-items: center; padding: 6px 0; }
+  .orbit svg { width: 168px; height: 168px; }
+  .orbit .center { position: absolute; text-align: center; }
+  .orbit .center b { display: block; font-weight: 600; font-size: 34px; letter-spacing: -.02em; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .orbit .center span { font-size: 11px; color: var(--ink-2); letter-spacing: .14em; text-transform: uppercase; }
+  .goal { font-size: 12.5px; color: var(--ink-2); text-align: center; padding: 0 6px; }
+  .tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .tile { border-radius: 16px; background: var(--glass); border: 1px solid var(--stroke); padding: 10px 12px; }
+  .tile span { display: block; font-size: 10.5px; color: var(--ink-3); letter-spacing: .1em; text-transform: uppercase; }
+  .tile b { font-weight: 500; font-size: 20px; font-family: var(--mono); }
+  .tile.fire b { color: var(--amber); text-shadow: 0 0 14px rgba(251,191,36,.5); }
+  .tile.xp b { color: var(--lime); }
+  .tile.due b { color: var(--pink); }
+  .tile.conf b { color: var(--cyan); }
+  .skills { display: grid; gap: 10px; margin-top: auto; }
+  .sk { display: grid; grid-template-columns: 1fr auto; gap: 4px; font-size: 12px; color: var(--ink-2); }
+  .sk .track { grid-column: 1 / -1; height: 4px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden; }
+  .sk .track i { display: block; height: 100%; background: var(--grad); box-shadow: 0 0 10px rgba(34,211,238,.6); }
+  /* main */
+  main { min-width: 0; display: flex; flex-direction: column; gap: 16px; }
+  .topbar { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 20px; border-radius: 999px; }
+  .topbar .crumb { color: var(--ink-2); font-size: 13px; } .topbar .crumb b { color: var(--ink); font-weight: 500; }
+  .live { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; font-size: 12px; color: var(--ink-2); }
+  .live i { width: 8px; height: 8px; border-radius: 50%; background: var(--lime); box-shadow: 0 0 12px var(--lime); }
+  .stage { padding: 28px 30px 34px; }
+  h1 { font-weight: 600; font-size: 32px; letter-spacing: -.02em; }
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin: 10px 0 16px; }
+  .chip { font-size: 11.5px; padding: 4px 10px; border-radius: 999px; border: 1px solid var(--stroke); background: var(--glass); color: var(--ink-2); }
+  .chip.hl { border-color: rgba(34,211,238,.5); color: var(--cyan); }
+  .composer { border-radius: 20px; padding: 4px; background: linear-gradient(var(--void), var(--void)) padding-box, linear-gradient(135deg, rgba(34,211,238,.5), rgba(139,92,246,.35), rgba(244,114,182,.5)) border-box; border: 1px solid transparent; }
+  .composer textarea { width: 100%; background: transparent; border: 0; resize: none; padding: 14px 16px; min-height: 92px; outline: none; font-size: 15px; font-weight: 300; line-height: 1.7; }
+  .composer footer { display: flex; justify-content: space-between; align-items: center; padding: 4px 6px 6px 16px; font: 12px var(--mono); color: var(--ink-3); }
+  .cta { padding: 9px 18px; border-radius: 999px; background: var(--grad); color: #05070f; font-weight: 600; font-size: 13px; box-shadow: 0 8px 30px -8px rgba(139,92,246,.8); }
+  .cta.ghost { background: var(--glass-2); color: var(--ink); box-shadow: none; border: 1px solid var(--stroke-2); }
+  .layers { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 18px; }
+  .layer { border-radius: 20px; padding: 16px 18px; background: rgba(255,255,255,.04); border: 1px solid var(--stroke); position: relative; overflow: hidden; }
+  .layer::before { content: ''; position: absolute; width: 140px; height: 140px; border-radius: 50%; filter: blur(40px); top: -60px; right: -40px; opacity: .55; }
+  .layer.s::before { background: var(--lime); } .layer.r::before { background: var(--cyan); } .layer.p::before { background: var(--pink); }
+  .layer.p { grid-column: 1 / -1; }
+  .layer h3 { position: relative; display: flex; align-items: center; gap: 10px; font-size: 12px; font-weight: 500; letter-spacing: .12em; text-transform: uppercase; color: var(--ink-2); margin-bottom: 8px; }
+  .layer h3 i { width: 26px; height: 26px; border-radius: 9px; display: grid; place-items: center; font-style: normal; font-size: 13px; color: #05070f; }
+  .layer.s h3 i { background: var(--lime); } .layer.r h3 i { background: var(--cyan); } .layer.p h3 i { background: var(--pink); }
+  .layer h3 span { margin-left: auto; font: 11px var(--mono); letter-spacing: 0; text-transform: none; color: var(--ink-2); }
+  .layer p { position: relative; font-size: 14.5px; font-weight: 300; }
+  .layer p b { font-weight: 500; }
+  ins { text-decoration: none; color: var(--cyan); border-bottom: 1px dashed rgba(34,211,238,.6); }
+  del { color: var(--ink-3); text-decoration-color: var(--pink); }
+  .pgrid { position: relative; display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  .pc { border-radius: 16px; background: rgba(5,7,15,.45); border: 1px solid var(--stroke); }
+  .pc > button { width: 100%; text-align: left; padding: 12px 14px; display: grid; gap: 4px; }
+  .pc .k { font: 11px var(--mono); color: var(--pink); }
+  .pc .detail { display: none; padding: 0 14px 12px; font-size: 12.5px; color: var(--ink-2); }
+  .pc[data-open='true'] { border-color: rgba(244,114,182,.55); box-shadow: 0 0 24px -8px rgba(244,114,182,.7); }
+  .pc[data-open='true'] .detail { display: block; }
+  .metrics { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+  .metric { border-radius: 14px; border: 1px solid var(--stroke); padding: 8px 14px; background: var(--glass); font-size: 12px; color: var(--ink-2); }
+  .metric b { font: 500 16px var(--mono); color: var(--ink); margin-right: 6px; }
+  /* chat */
+  .chat { display: flex; flex-direction: column; height: calc(100dvh - 32px); position: sticky; top: 16px; overflow: hidden; }
+  .chat header { padding: 16px 18px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--stroke); }
+  .chat header .orb { width: 34px; height: 34px; }
+  .chat header b { font-weight: 500; display: block; } .chat header span { font: 11px var(--mono); color: var(--ink-3); }
+  .log { flex: 1; overflow: auto; padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+  .me { align-self: flex-end; max-width: 88%; padding: 10px 14px; border-radius: 18px 18px 6px 18px; background: linear-gradient(135deg, rgba(34,211,238,.25), rgba(139,92,246,.25)); border: 1px solid rgba(34,211,238,.35); font-size: 13.5px; }
+  .bot { max-width: 94%; padding: 12px 14px; border-radius: 18px 18px 18px 6px; background: rgba(255,255,255,.05); border: 1px solid var(--stroke); font-size: 13.5px; display: grid; gap: 8px; }
+  .bot .r { display: grid; grid-template-columns: 8px 1fr; gap: 10px; }
+  .bot .r i { width: 8px; height: 8px; border-radius: 50%; margin-top: 7px; }
+  .chat form { padding: 14px; }
+  .pillin { display: flex; gap: 8px; align-items: center; border-radius: 999px; border: 1px solid var(--stroke-2); background: rgba(5,7,15,.5); padding: 5px 5px 5px 16px; }
+  .pillin textarea { flex: 1; background: none; border: 0; resize: none; outline: none; height: 24px; font-weight: 300; }
+  /* vault */
+  .flash { margin-top: 16px; border-radius: 24px; padding: 36px; text-align: center; background: radial-gradient(80% 120% at 50% 0%, rgba(139,92,246,.25), transparent 60%), rgba(255,255,255,.04); border: 1px solid var(--stroke); }
+  .flash .word { font-weight: 600; font-size: 44px; letter-spacing: -.02em; background: var(--grad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .flash .ans { display: none; margin-top: 8px; color: var(--ink-2); }
+  .flash[data-revealed='true'] .ans { display: block; }
+  .flash[data-revealed='true'] [data-reveal] { display: none; }
+  .q { display: none; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 22px; }
+  .flash[data-revealed='true'] .q { display: grid; }
+  .q button { border-radius: 14px; border: 1px solid var(--stroke); background: var(--glass); padding: 10px 0; }
+  .q button b { display: block; font: 500 18px var(--mono); } .q button span { font-size: 10.5px; color: var(--ink-3); }
+  .q button:hover { border-color: var(--cyan); box-shadow: 0 0 18px -6px var(--cyan); }
+  [hidden] { display: none !important; }
+  .dock { display: none; }
+  @media (max-width: 1160px) { .app { grid-template-columns: 250px minmax(0, 1fr); } .chat { display: none; } body[data-active='coach'] .chat { display: flex; position: static; height: auto; min-height: 70dvh; } .layers { grid-template-columns: 1fr; } .pgrid { grid-template-columns: 1fr; } }
+  @media (max-width: 760px) {
+    .app { display: flex; flex-direction: column; gap: 12px; padding: 12px 12px 96px; }
+    aside { position: static; height: auto; padding: 14px; display: grid; grid-template-columns: 116px 1fr; gap: 10px 14px; align-items: center; }
+    .brand, nav.side, .skills { display: none; }
+    .orbit { grid-row: span 2; padding: 0; } .orbit svg { width: 116px; height: 116px; } .orbit .center b { font-size: 24px; } .orbit .center span { font-size: 9px; }
+    .goal { text-align: left; padding: 0; font-size: 12px; }
+    .tiles { gap: 6px; } .tile { padding: 7px 9px; border-radius: 12px; } .tile b { font-size: 15px; } .tile span { font-size: 9px; }
+    .topbar { display: none; }
+    .stage { padding: 20px 16px 24px; }
+    h1 { font-size: 26px; }
+    .layers { grid-template-columns: 1fr; } .pgrid { grid-template-columns: 1fr; }
+    .chat { display: none; }
+    body[data-active='coach'] .chat { display: flex; position: static; height: auto; min-height: 70dvh; }
+    .q { grid-template-columns: repeat(3, 1fr); }
+    .dock { display: flex; position: fixed; left: 50%; bottom: 16px; transform: translateX(-50%); gap: 4px; padding: 6px; border-radius: 999px; z-index: 5; background: rgba(10, 13, 28, .82); }
+    .dock button { padding: 9px 14px; border-radius: 999px; font-size: 12.5px; color: var(--ink-2); }
+    .dock button[aria-current='page'] { background: var(--grad); color: #05070f; font-weight: 600; }
+  }
+</style>
+</head>
+<body data-start="studio">
+<div class="app">
+  <aside class="glass">
+    <div class="brand"><div class="orb"></div><b>LUMOS</b><span>v1.0</span></div>
+    <nav class="side" aria-label="Main">
+      <button data-nav="studio"><span class="dot"></span>Studio</button>
+      <button data-nav="coach"><span class="dot"></span>Coach</button>
+      <button data-nav="vault"><span class="dot"></span>Vault</button>
+      <button data-nav="archive"><span class="dot"></span>Archive</button>
+    </nav>
+    <div class="orbit">
+      <svg viewBox="0 0 160 160" aria-hidden="true">
+        <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#22d3ee"/><stop offset=".55" stop-color="#8b5cf6"/><stop offset="1" stop-color="#f472b6"/></linearGradient></defs>
+        <circle cx="80" cy="80" r="66" fill="none" stroke="rgba(255,255,255,.08)" stroke-width="8"/>
+        <circle cx="80" cy="80" r="66" fill="none" stroke="url(#g)" stroke-width="8" stroke-linecap="round" stroke-dasharray="137 415" transform="rotate(-90 80 80)" style="filter: drop-shadow(0 0 6px rgba(139,92,246,.8))"/>
+        <circle cx="80" cy="80" r="50" fill="none" stroke="rgba(255,255,255,.06)" stroke-dasharray="2 6"/>
+      </svg>
+      <div class="center"><b>A1.1</b><span>4 / 12 · A1.2</span></div>
+    </div>
+    <p class="goal">Can introduce themselves and express basic needs.</p>
+    <div class="tiles">
+      <div class="tile fire"><span>Streak</span><b>3d</b></div>
+      <div class="tile xp"><span>XP</span><b>195</b></div>
+      <div class="tile due"><span>Vault due</span><b>2</b></div>
+      <div class="tile conf"><span>Vault conf.</span><b>54</b></div>
+    </div>
+    <div class="skills">
+      <div class="sk">Reading <span class="mono">T·I</span><div class="track"><i style="width:66%"></i></div></div>
+      <div class="sk">Writing <span class="mono">I</span><div class="track"><i style="width:33%"></i></div></div>
+      <div class="sk">Listening <span class="mono">–</span><div class="track"><i style="width:4%"></i></div></div>
+      <div class="sk">Speaking <span class="mono">–</span><div class="track"><i style="width:4%"></i></div></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="topbar glass"><span class="crumb">Studio / Writing / <b>About Me</b></span><span class="live"><i></i>Gemini online</span></div>
+
+    <section class="stage glass" data-view="studio">
+      <h1>About Me</h1>
+      <div class="chips"><span class="chip hl">A1</span><span class="chip">Interactional</span><span class="chip">30–60 words</span><span class="chip">Daily life</span></div>
+      <p style="color:var(--ink-2)">Introduce yourself. Write your name, age, city, job, and two things you like.</p>
+      <div class="composer" style="margin-top:14px">
+        <textarea aria-label="Your text">hello my name is Mehmet. i have 30 years. I work in a office and I like football because it is fun.</textarea>
+        <footer><span>22 words · neutral</span><button class="cta">Analyze ↗</button></footer>
+      </div>
+      <div class="layers">
+        <div class="layer s"><h3><i>✓</i>Strength<span>+10 xp</span></h3><p>You linked ideas with <b>“because”</b>, exactly how fluent speakers connect thoughts.</p></div>
+        <div class="layer r"><h3><i>↻</i>Natural Recast</h3><p><ins>Hello,</ins> my name is Mehmet. <ins>I am</ins> 30 <ins>years old</ins>. I work in <ins>an</ins> office and I like football because it is fun.</p></div>
+        <div class="layer p"><h3><i>✦</i>Polish<span>3 keys · meaning already clear</span></h3>
+          <div class="pgrid">
+            <div class="pc" data-item data-open="true"><button data-toggle aria-expanded="true"><span class="k">01 · verb choice</span><span><del>i have 30 years</del><br>→ I am 30 years old</span></button><div class="detail">Age uses <b>be</b>. (TR: 30 yaşındayım) · <span class="mono" style="color:var(--cyan)">/jɪəz/</span></div></div>
+            <div class="pc" data-item><button data-toggle aria-expanded="false"><span class="k">02 · articles</span><span><del>a office</del><br>→ an office</span></button><div class="detail">“an” before a vowel sound · <span class="mono" style="color:var(--cyan)">/ˈɒfɪs/</span></div></div>
+            <div class="pc" data-item><button data-toggle aria-expanded="false"><span class="k">03 · capitalisation</span><span><del>i</del><br>→ I</span></button><div class="detail">“I” is always a capital letter.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="metrics"><span class="metric"><b>78</b>score</span><span class="metric"><b>A1</b>estimated</span><span class="metric"><b>fun→enjoyable</b>upgrade</span></div>
+    </section>
+
+    <section class="stage glass" data-view="vault" hidden>
+      <h1>Memory Vault</h1>
+      <div class="chips"><span class="chip hl">2 due</span><span class="chip">6 words</span><span class="chip">confidence 54</span></div>
+      <div class="flash" data-card>
+        <div class="mono" style="font-size:11px;color:var(--ink-3)">A1 · 1d · ease 2.50</div>
+        <div class="word" data-card-word>next to</div>
+        <div class="ans"><div data-card-meaning style="font-size:18px;color:var(--ink)"></div><div data-card-example></div><div style="font-size:12px;color:var(--cyan)">Upgrade: <span data-card-up></span></div></div>
+        <button class="cta ghost" data-reveal style="margin-top:18px">Reveal</button>
+        <div class="q"><button data-q="0"><b>0</b><span>blackout</span></button><button data-q="1"><b>1</b><span>wrong</span></button><button data-q="2"><b>2</b><span>almost</span></button><button data-q="3"><b>3</b><span>hard</span></button><button data-q="4"><b>4</b><span>good</span></button><button data-q="5"><b>5</b><span>perfect</span></button></div>
+        <p data-card-log class="mono" style="font-size:12px;color:var(--ink-3);margin-top:12px"></p>
+      </div>
+    </section>
+
+    <section class="stage glass" data-view="archive" hidden>
+      <h1>Archive</h1>
+      <p style="color:var(--ink-2);margin-top:10px">17 Oct 2026 · 2 activities · 2 reviews · +195 XP · streak 3d</p>
+    </section>
+  </main>
+
+  <section class="chat glass" data-view="studio coach" aria-label="Coach chat">
+    <header><div class="orb"></div><div><b>Lumos Coach</b><span>gemini · rules synced</span></div></header>
+    <div class="log" id="log-e">
+      <div class="me">Can you check: “I am working in a office since 2020.”</div>
+      <div class="bot">
+        <div class="r"><i style="background:var(--lime);box-shadow:0 0 8px var(--lime)"></i><span>“since 2020” is the right time expression. Nice instinct.</span></div>
+        <div class="r"><i style="background:var(--cyan);box-shadow:0 0 8px var(--cyan)"></i><span>I have been working in <ins>an</ins> office since 2020.</span></div>
+        <div class="r"><i style="background:var(--pink);box-shadow:0 0 8px var(--pink)"></i><span>With “since”: <del>am working</del> → have been working.</span></div>
+      </div>
+    </div>
+    <form data-chat-form="#log-e"><div class="pillin"><textarea aria-label="Message">I live in Istanbul since five years.</textarea><button class="cta" style="padding:8px 14px">Send</button></div></form>
+  </section>
+</div>
+<nav class="dock glass" aria-label="Main (mobile)">
+  <button data-nav="studio">Studio</button><button data-nav="coach">Coach</button><button data-nav="vault">Vault</button><button data-nav="archive">Archive</button>
+</nav>
+<template data-tpl="user"><div class="me" data-text></div></template>
+<template data-tpl="bot"><div class="bot"><div class="r" data-row="Strength" hidden><i style="background:var(--lime)"></i><span>“since” is right for a starting point.</span></div><div class="r" data-row="Recast" hidden><i style="background:var(--cyan)"></i><span>I have lived in Istanbul for five years.</span></div><div class="r" data-row="Polish" hidden><i style="background:var(--pink)"></i><span>Length of time takes “for”.</span></div></div></template>
+<script src="shared.js"></script>
+</body>
+</html>

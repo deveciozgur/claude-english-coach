@@ -1,0 +1,252 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Concept B · Gamified & Dynamic · Lumos</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;700;800;900&family=Space+Mono:wght@700&display=swap" rel="stylesheet" />
+<style>
+  /* Concept B: Duolingo-style energy. Chunky 3D buttons (bottom border), saturated semantic colours, rewards everywhere. */
+  :root {
+    --bg: #ffffff; --soft: #f7f7f7; --line: #e5e5e5; --ink: #3c3c3c; --ink-2: #777777; --ink-3: #afafaf;
+    --green: #58cc02; --green-d: #46a302; --green-l: #d7ffb8;
+    --blue: #1cb0f6; --blue-d: #1899d6; --blue-l: #ddf4ff;
+    --gold: #ffc800; --gold-d: #e5a400; --gold-l: #fff5d3;
+    --red: #ff4b4b; --red-l: #ffdfe0;
+    --purple: #ce82ff; --purple-d: #a560d8; --purple-l: #f4e3ff;
+    --orange: #ff9600;
+    --sans: 'Nunito', system-ui, sans-serif; --mono: 'Space Mono', ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; }
+  body { font: 600 15px/1.5 var(--sans); color: var(--ink); background: var(--bg); }
+  button, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; border: 0; background: none; }
+  .app { display: grid; grid-template-columns: 280px minmax(0, 1fr) 360px; min-height: 100dvh; }
+  .chunk { border: 2px solid var(--line); border-bottom-width: 4px; border-radius: 16px; background: #fff; }
+  .btn3d { border-radius: 14px; padding: 12px 18px; font-weight: 800; text-transform: uppercase; letter-spacing: .04em; font-size: 14px; color: #fff; background: var(--green); box-shadow: 0 4px 0 var(--green-d); transition: transform .08s, box-shadow .08s; }
+  .btn3d:active { transform: translateY(4px); box-shadow: 0 0 0 var(--green-d); }
+  .btn3d.blue { background: var(--blue); box-shadow: 0 4px 0 var(--blue-d); }
+  .btn3d.white { background: #fff; color: var(--blue); box-shadow: 0 4px 0 var(--line); border: 2px solid var(--line); }
+  /* sidebar */
+  aside { border-right: 2px solid var(--line); padding: 20px 16px; display: flex; flex-direction: column; gap: 16px; }
+  .brand { font-weight: 900; font-size: 28px; color: var(--green); letter-spacing: -.02em; padding: 0 8px; }
+  .brand small { font: 700 11px var(--mono); color: var(--ink-3); margin-left: 6px; letter-spacing: 0; }
+  nav.side { display: grid; gap: 4px; }
+  nav.side button { display: flex; align-items: center; gap: 14px; padding: 10px 12px; border-radius: 12px; border: 2px solid transparent; font-weight: 800; text-transform: uppercase; letter-spacing: .05em; font-size: 14px; color: var(--ink-2); text-align: left; }
+  nav.side button .ic { font-size: 22px; width: 28px; text-align: center; }
+  nav.side button:hover { background: var(--soft); }
+  nav.side button[aria-current='page'] { background: var(--blue-l); border-color: #84d8ff; color: var(--blue); }
+  .lvl { padding: 16px; display: grid; grid-template-columns: 76px 1fr; gap: 14px; align-items: center; }
+  .ring { width: 76px; height: 76px; border-radius: 50%; background: conic-gradient(var(--green) 0 33%, var(--line) 0); display: grid; place-items: center; }
+  .ring div { width: 60px; height: 60px; border-radius: 50%; background: #fff; display: grid; place-items: center; font-weight: 900; font-size: 18px; color: var(--green); }
+  .lvl h3 { font-weight: 900; font-size: 17px; }
+  .lvl p { font-size: 13px; color: var(--ink-2); line-height: 1.35; }
+  .lvl .chip { display: inline-block; margin-top: 6px; background: var(--green-l); color: var(--green-d); border-radius: 999px; padding: 2px 10px; font-size: 12px; font-weight: 800; }
+  .counters { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .counter { padding: 10px 12px; display: grid; grid-template-columns: auto 1fr; gap: 0 10px; align-items: center; }
+  .counter .ic { font-size: 26px; }
+  .counter b { font-weight: 900; font-size: 20px; display: block; line-height: 1.1; white-space: nowrap; }
+  .counter span { white-space: nowrap; }
+  .counter span { font-size: 12px; color: var(--ink-2); font-weight: 700; }
+  .counter.fire b { color: var(--orange); } .counter.xp b { color: var(--gold-d); } .counter.vault b { color: var(--purple-d); } .counter.conf b { color: var(--blue); }
+  .skills { padding: 14px 16px; display: grid; gap: 12px; }
+  .skills h4 { font-weight: 900; font-size: 15px; }
+  .sk { display: grid; grid-template-columns: 1fr auto; gap: 4px 10px; font-size: 13px; font-weight: 800; }
+  .sk .track { grid-column: 1 / -1; height: 12px; border-radius: 999px; background: var(--line); overflow: hidden; }
+  .sk .track i { display: block; height: 100%; border-radius: 999px; position: relative; }
+  .sk .track i::after { content: ''; position: absolute; left: 6px; right: 6px; top: 3px; height: 3px; border-radius: 3px; background: rgba(255,255,255,.45); }
+  .sk em { font-style: normal; font: 700 11px var(--mono); color: var(--ink-3); }
+  /* main */
+  main { min-width: 0; padding: 26px 32px 60px; }
+  .wrap { max-width: 680px; margin: 0 auto; }
+  .quest { display: flex; align-items: center; gap: 14px; padding: 14px 16px; background: var(--gold-l); border: 2px solid #ffe38a; border-bottom-width: 4px; border-radius: 16px; margin-bottom: 18px; }
+  .quest .ic { font-size: 28px; }
+  .quest b { font-weight: 900; } .quest p { font-size: 13px; color: #8a6d00; }
+  .quest .prog { margin-left: auto; width: 120px; height: 14px; background: #fff; border-radius: 999px; overflow: hidden; border: 2px solid #ffe38a; }
+  .quest .prog i { display: block; height: 100%; width: 66%; background: var(--gold); }
+  h1 { font-weight: 900; font-size: 30px; letter-spacing: -.01em; }
+  .tags { display: flex; gap: 8px; flex-wrap: wrap; margin: 8px 0 16px; }
+  .tag { border-radius: 999px; padding: 3px 12px; font-size: 12px; font-weight: 800; }
+  .editor { padding: 4px; margin-top: 10px; }
+  .editor textarea { width: 100%; border: 0; resize: none; padding: 14px; min-height: 96px; outline: none; font-weight: 700; font-size: 16px; }
+  .editor footer { display: flex; justify-content: space-between; align-items: center; padding: 6px 8px 8px 14px; color: var(--ink-3); font-size: 13px; }
+  .fbgrid { display: grid; gap: 14px; margin-top: 22px; }
+  .fcard { border-radius: 18px; border: 2px solid; border-bottom-width: 5px; padding: 16px 18px; position: relative; }
+  .fcard .head { display: flex; align-items: center; gap: 10px; font-weight: 900; font-size: 16px; margin-bottom: 6px; }
+  .fcard .badge { width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; font-size: 20px; color: #fff; }
+  .fcard .xp { margin-left: auto; font-size: 13px; font-weight: 900; border-radius: 999px; padding: 2px 10px; background: #fff; }
+  .strength { background: var(--green-l); border-color: #a5ed6e; }
+  .strength .badge { background: var(--green); box-shadow: 0 3px 0 var(--green-d); } .strength .head { color: var(--green-d); } .strength .xp { color: var(--green-d); }
+  .recast { background: var(--blue-l); border-color: #84d8ff; }
+  .recast .badge { background: var(--blue); box-shadow: 0 3px 0 var(--blue-d); } .recast .head { color: var(--blue-d); }
+  .polish { background: var(--purple-l); border-color: #e3b8ff; }
+  .polish .badge { background: var(--purple); box-shadow: 0 3px 0 var(--purple-d); } .polish .head { color: var(--purple-d); }
+  mark { background: #fff; color: var(--blue-d); border-radius: 6px; padding: 0 4px; font-weight: 800; }
+  .pitems { display: grid; gap: 8px; margin-top: 8px; }
+  .pi { background: #fff; border-radius: 12px; border: 2px solid #e3b8ff; }
+  .pi > button { width: 100%; display: flex; align-items: center; gap: 10px; padding: 10px 12px; text-align: left; font-weight: 800; }
+  .pi .n { width: 26px; height: 26px; border-radius: 8px; background: var(--purple-l); color: var(--purple-d); display: grid; place-items: center; font-size: 13px; }
+  .pi s { color: var(--red); text-decoration-thickness: 2px; } .pi .to { color: var(--green-d); }
+  .pi .key { margin-left: auto; font-size: 18px; transition: transform .2s; }
+  .pi[data-open='true'] .key { transform: rotate(-20deg) scale(1.15); }
+  .pi .detail { display: none; padding: 0 12px 12px 48px; font-size: 13px; color: var(--ink-2); }
+  .pi[data-open='true'] .detail { display: block; }
+  .reward { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
+  .reward div { padding: 10px 14px; font-weight: 900; display: flex; gap: 8px; align-items: center; }
+  /* chat */
+  .chat { border-left: 2px solid var(--line); display: flex; flex-direction: column; max-height: 100dvh; position: sticky; top: 0; background: var(--soft); }
+  .chat header { padding: 16px; display: flex; align-items: center; gap: 12px; border-bottom: 2px solid var(--line); background: #fff; }
+  .avatar { width: 44px; height: 44px; border-radius: 50%; background: var(--green); display: grid; place-items: center; font-size: 22px; box-shadow: 0 3px 0 var(--green-d); }
+  .chat header b { font-weight: 900; display: block; } .chat header span { font-size: 12px; color: var(--green-d); font-weight: 800; }
+  .log { flex: 1; overflow: auto; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+  .msg { max-width: 92%; padding: 10px 14px; border-radius: 16px; font-size: 14px; border: 2px solid var(--line); border-bottom-width: 4px; background: #fff; }
+  .msg.me { align-self: flex-end; background: var(--blue); color: #fff; border-color: var(--blue-d); }
+  .msg .row { display: flex; gap: 8px; margin-top: 6px; } .msg .row:first-child { margin-top: 0; }
+  .msg .pill { flex: none; font-size: 11px; font-weight: 900; border-radius: 8px; padding: 1px 7px; height: fit-content; margin-top: 2px; color: #fff; }
+  .chat form { padding: 12px; display: flex; gap: 8px; border-top: 2px solid var(--line); background: #fff; }
+  .chat textarea { flex: 1; border: 2px solid var(--line); border-radius: 14px; padding: 10px 12px; resize: none; height: 48px; outline: none; font-weight: 700; }
+  /* vault */
+  .flash { padding: 30px; text-align: center; margin-top: 16px; }
+  .flash .word { font-weight: 900; font-size: 40px; color: var(--ink); }
+  .flash .ans { display: none; margin: 10px 0; color: var(--ink-2); }
+  .flash[data-revealed='true'] .ans { display: block; }
+  .flash[data-revealed='true'] [data-reveal] { display: none; }
+  .q { display: none; grid-template-columns: repeat(6, 1fr); gap: 8px; margin-top: 16px; }
+  .flash[data-revealed='true'] .q { display: grid; }
+  .q button { border-radius: 12px; padding: 8px 0; font-weight: 900; color: #fff; }
+  .q button span { display: block; font-size: 10px; font-weight: 800; opacity: .9; }
+  [hidden] { display: none !important; }
+  .tabbar { display: none; }
+  @media (max-width: 1100px) { .app { grid-template-columns: 250px minmax(0, 1fr); } .chat { display: none; } body[data-active='coach'] .chat { display: flex; position: static; max-height: none; } }
+  @media (max-width: 760px) {
+    .app { display: block; padding-bottom: 76px; }
+    aside { border-right: 0; padding: 14px 16px 4px; gap: 12px; }
+    nav.side, .skills { display: none; }
+    .brand { font-size: 24px; padding: 0; }
+    .lvl { grid-template-columns: 64px 1fr; padding: 12px; }
+    .ring { width: 64px; height: 64px; } .ring div { width: 50px; height: 50px; font-size: 15px; }
+    .counters { grid-template-columns: repeat(4, 1fr); gap: 6px; }
+    .counter { grid-template-columns: 1fr; justify-items: center; gap: 0; padding: 8px 4px; text-align: center; }
+    .counter .ic { font-size: 20px; } .counter b { font-size: 16px; } .counter span { font-size: 10px; }
+    main { padding: 12px 16px 40px; }
+    .quest .prog { display: none; }
+    .tabbar { display: grid; grid-template-columns: repeat(4, 1fr); position: fixed; bottom: 0; left: 0; right: 0; background: #fff; border-top: 2px solid var(--line); padding: 8px 8px 14px; z-index: 5; }
+    .tabbar button { display: flex; flex-direction: column; align-items: center; font-size: 11px; font-weight: 800; color: var(--ink-3); border-radius: 12px; padding: 4px 0; border: 2px solid transparent; }
+    .tabbar button .ic { font-size: 22px; }
+    .tabbar button[aria-current='page'] { color: var(--blue); background: var(--blue-l); border-color: #84d8ff; }
+    .chat { border-left: 0; }
+    .q { grid-template-columns: repeat(3, 1fr); }
+  }
+</style>
+</head>
+<body data-start="studio">
+<div class="app">
+  <aside>
+    <div class="brand">lumos<small>v1.0</small></div>
+    <nav class="side" aria-label="Main">
+      <button data-nav="studio"><span class="ic">🏠</span>Learn</button>
+      <button data-nav="coach"><span class="ic">💬</span>Coach</button>
+      <button data-nav="vault"><span class="ic">🧠</span>Vault</button>
+      <button data-nav="archive"><span class="ic">📜</span>Journey</button>
+    </nav>
+    <div class="chunk lvl">
+      <div class="ring"><div>A1.1</div></div>
+      <div><h3>Beginner</h3><p>Next: describe your daily routine</p><span class="chip">4 / 12 to A1.2</span></div>
+    </div>
+    <div class="counters">
+      <div class="chunk counter fire"><span class="ic">🔥</span><div><b>3</b><span>day streak</span></div></div>
+      <div class="chunk counter xp"><span class="ic">⚡</span><div><b>195</b><span>total XP</span></div></div>
+      <div class="chunk counter vault"><span class="ic">🧠</span><div><b>2</b><span>vault due</span></div></div>
+      <div class="chunk counter conf"><span class="ic">💎</span><div><b>54</b><span>vault power</span></div></div>
+    </div>
+    <div class="chunk skills">
+      <h4>Skill paths</h4>
+      <div class="sk">Reading <em>T I · E</em><div class="track"><i style="width:66%;background:var(--green)"></i></div></div>
+      <div class="sk">Writing <em>I · T E</em><div class="track"><i style="width:33%;background:var(--blue)"></i></div></div>
+      <div class="sk">Listening <em>– –</em><div class="track"><i style="width:6%;background:var(--purple)"></i></div></div>
+      <div class="sk">Speaking <em>– –</em><div class="track"><i style="width:6%;background:var(--orange)"></i></div></div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="wrap" data-view="studio">
+      <div class="quest"><span class="ic">🎯</span><div><b>Daily quest: 3 tasks today</b><p>2 of 3 done · +20 XP bonus waiting</p></div><div class="prog"><i></i></div></div>
+      <h1>About Me</h1>
+      <div class="tags"><span class="tag" style="background:var(--gold-l);color:var(--gold-d)">A1</span><span class="tag" style="background:var(--blue-l);color:var(--blue-d)">Interactional</span><span class="tag" style="background:var(--soft);color:var(--ink-2)">☕ Daily life</span></div>
+      <p style="color:var(--ink-2)">Introduce yourself: your name, age, city, job, and two things you like.</p>
+      <div class="chunk editor">
+        <textarea aria-label="Your text">hello my name is Mehmet. i have 30 years. I work in a office and I like football because it is fun.</textarea>
+        <footer><span>22 / 30 words ✏️</span><button class="btn3d">Check</button></footer>
+      </div>
+
+      <div class="fbgrid">
+        <div class="fcard strength">
+          <div class="head"><span class="badge">💪</span>Strength Recognition<span class="xp">+10 XP</span></div>
+          <p>You linked ideas with <b>“because”</b>. That’s how fluent speakers connect thoughts! 🎉</p>
+        </div>
+        <div class="fcard recast">
+          <div class="head"><span class="badge">🔁</span>Natural Recast</div>
+          <p><mark>Hello,</mark> my name is Mehmet. <mark>I am</mark> 30 <mark>years old</mark>. I work in <mark>an</mark> office and I like football because it is fun.</p>
+        </div>
+        <div class="fcard polish">
+          <div class="head"><span class="badge">✨</span>Polish<span class="xp" style="color:var(--purple-d)">3 keys to A1.2</span></div>
+          <div class="pitems">
+            <div class="pi" data-item data-open="true"><button data-toggle aria-expanded="true"><span class="n">1</span><span><s>i have 30 years</s> → <span class="to">I am 30 years old</span></span><span class="key">🔑</span></button><div class="detail">Age uses <b>be</b>, not <b>have</b>. (TR: 30 yaşındayım) · /jɪəz/</div></div>
+            <div class="pi" data-item><button data-toggle aria-expanded="false"><span class="n">2</span><span><s>a office</s> → <span class="to">an office</span></span><span class="key">🔑</span></button><div class="detail">“an” before a vowel sound.</div></div>
+            <div class="pi" data-item><button data-toggle aria-expanded="false"><span class="n">3</span><span><s>i</s> → <span class="to">I</span></span><span class="key">🔑</span></button><div class="detail">“I” is always a capital letter.</div></div>
+          </div>
+        </div>
+      </div>
+      <div class="reward">
+        <div class="chunk" style="color:var(--gold-d)">⚡ +35 XP</div>
+        <div class="chunk" style="color:var(--orange)">🔥 Streak saved</div>
+        <div class="chunk" style="color:var(--green-d)">🏅 Interactional cleared</div>
+      </div>
+    </div>
+
+    <div class="wrap" data-view="vault" hidden>
+      <h1>Vault 🧠</h1>
+      <p style="color:var(--ink-2)">2 cards ready. Keep your memory power up!</p>
+      <div class="chunk flash" data-card>
+        <span class="tag" style="background:var(--gold-l);color:var(--gold-d)">A1 · 1 day</span>
+        <div class="word" data-card-word>next to</div>
+        <div class="ans"><div data-card-meaning style="font-size:20px;font-weight:900;color:var(--green-d)"></div><div data-card-example></div><div style="font-size:13px">Level up: <span data-card-up></span></div></div>
+        <button class="btn3d blue" data-reveal style="margin-top:16px">Flip card</button>
+        <div class="q">
+          <button data-q="0" style="background:var(--red)">0<span>Blank</span></button><button data-q="1" style="background:#ff7a59">1<span>Wrong</span></button><button data-q="2" style="background:var(--orange)">2<span>Almost</span></button><button data-q="3" style="background:var(--gold-d)">3<span>Hard</span></button><button data-q="4" style="background:var(--green)">4<span>Good</span></button><button data-q="5" style="background:var(--blue)">5<span>Perfect</span></button>
+        </div>
+        <p data-card-log style="font-size:13px;color:var(--ink-2);margin-top:12px"></p>
+      </div>
+    </div>
+
+    <div class="wrap" data-view="archive" hidden>
+      <h1>Your journey 📜</h1>
+      <div class="chunk" style="padding:16px;margin-top:14px"><b>Today · 2026-10-17</b><p style="color:var(--ink-2)">2 activities · 2 reviews · +195 XP · 🔥 day 3</p></div>
+    </div>
+  </main>
+
+  <section class="chat" data-view="studio coach" aria-label="Coach chat">
+    <header><div class="avatar">🦉</div><div><b>Coach Lumos</b><span>● online · Gemini</span></div></header>
+    <div class="log" id="log-b">
+      <div class="msg me">Can you check: “I am working in a office since 2020.”</div>
+      <div class="msg">
+        <div class="row"><span class="pill" style="background:var(--green)">💪</span><span>“since 2020” is spot on. Nice!</span></div>
+        <div class="row"><span class="pill" style="background:var(--blue)">🔁</span><span>I have been working in <b>an</b> office since 2020.</span></div>
+        <div class="row"><span class="pill" style="background:var(--purple)">✨</span><span>With “since”: am working → <b>have been working</b>.</span></div>
+      </div>
+    </div>
+    <form data-chat-form="#log-b"><textarea aria-label="Message">I live in Istanbul since five years.</textarea><button class="btn3d" style="padding:12px 14px">Send</button></form>
+  </section>
+</div>
+<nav class="tabbar" aria-label="Main (mobile)">
+  <button data-nav="studio"><span class="ic">🏠</span>Learn</button>
+  <button data-nav="coach"><span class="ic">💬</span>Coach</button>
+  <button data-nav="vault"><span class="ic">🧠</span>Vault</button>
+  <button data-nav="archive"><span class="ic">📜</span>Journey</button>
+</nav>
+<template data-tpl="user"><div class="msg me" data-text></div></template>
+<template data-tpl="bot"><div class="msg"><div class="row" data-row="Strength" hidden><span class="pill" style="background:var(--green)">💪</span><span>“since” is the right word for a starting point!</span></div><div class="row" data-row="Recast" hidden><span class="pill" style="background:var(--blue)">🔁</span><span>I have lived in Istanbul for five years.</span></div><div class="row" data-row="Polish" hidden><span class="pill" style="background:var(--purple)">✨</span><span>Length of time takes <b>for</b>: since five years → for five years.</span></div></div></template>
+<script src="shared.js"></script>
+</body>
+</html>
