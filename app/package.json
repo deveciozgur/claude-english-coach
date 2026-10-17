@@ -1,37 +1,37 @@
 {
-  "name": "english-coach-app",
+  "name": "lumos-english-coach",
   "private": true,
-  "version": "0.1.0",
+  "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "dev": "concurrently -k -n api,web -c cyan,magenta \"npm:dev:api\" \"npm:dev:web\"",
-    "dev:api": "node --watch server/index.js",
-    "dev:web": "vite",
-    "build": "vite build && node scripts/package-release.mjs",
-    "build:web": "vite build",
-    "start": "node server/index.js",
-    "test": "node --test server/*.test.js"
+    "dev": "next dev",
+    "build": "next build && node scripts/assemble-standalone.mjs",
+    "start": "node .next/standalone/server.js",
+    "typecheck": "tsc --noEmit",
+    "test": "node --conditions=react-server --test src/lib/server/*.test.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.135.0",
-    "express": "^5.3.0"
-  },
-  "devDependencies": {
     "@fontsource-variable/geist": "^5.3.0",
     "@fontsource-variable/geist-mono": "^5.3.0",
     "@fontsource-variable/newsreader": "^5.3.0",
     "@phosphor-icons/react": "^2.1.10",
-    "@tailwindcss/vite": "^4.3.3",
-    "@vitejs/plugin-react": "^6.1.2",
-    "concurrently": "^10.0.6",
     "marked": "^18.1.1",
     "motion": "^14.3.0",
+    "next": "^16.4.2",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^26.6.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "tailwindcss": "^4.3.3",
-    "vite": "^8.3.4"
+    "typescript": "^7.0.2"
   },
   "engines": {
-    "node": ">=20.12"
+    "node": ">=20.9"
   }
 }

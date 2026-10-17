@@ -1,15 +1,19 @@
-// PM2 process file: `pm2 start ecosystem.config.cjs` inside the uploaded release folder.
+// PM2 process file. Run inside the uploaded standalone folder: pm2 start ecosystem.config.cjs
 module.exports = {
   apps: [
     {
-      name: 'apex-coach',
-      script: 'server/index.js',
+      name: 'lumos-coach',
+      script: 'server.js',
       cwd: __dirname,
       instances: 1, // one process: file writes go through a single in-process queue
       exec_mode: 'fork',
       autorestart: true,
-      max_memory_restart: '300M',
-      env: { NODE_ENV: 'production' },
+      max_memory_restart: '400M',
+      env: {
+        NODE_ENV: 'production',
+        PORT: 3001,
+        HOSTNAME: '127.0.0.1', // behind Nginx; use 0.0.0.0 to listen on all interfaces
+      },
     },
   ],
 };

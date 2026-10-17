@@ -4,3 +4,7 @@ dist/
 .DS_Store
 release/
 .env
+.next/
+*.tsbuildinfo
+next-env.d.ts
+app/data/
