@@ -76,24 +76,24 @@ export default function WritingModule({ level, tasks, onActivitySaved, passedIds
           <TaskTitle level={level} title={task.title} theme={task.theme} hook={task.hook} fn={task.fn} skill="writing">
             <TaskPicker tasks={tasks} index={index} onChange={go} passedIds={passedIds} />
           </TaskTitle>
-          <p className="max-w-[60ch] font-serif text-[19px] leading-relaxed">{task.prompt}</p>
+          <p className="max-w-[60ch] text-[17px] leading-relaxed text-ink">{task.prompt}</p>
           {task.tr && <TurkishHint>{task.tr}</TurkishHint>}
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-[13px] text-ink-3">
             <span>
-              {task.minWords} to {task.maxWords} words
+              {task.minWords}–{task.maxWords} kelime
             </span>
-            <span>{task.register.charAt(0).toUpperCase() + task.register.slice(1)} register</span>
+            <span>Üslup: {({ informal: 'gündelik', neutral: 'nötr', formal: 'resmî' })[task.register] ?? task.register}</span>
           </div>
           {task.hints?.length > 0 && (
             <div className="flex flex-wrap items-center gap-1.5">
               <Lightbulb size={16} className="text-amber" aria-hidden />
-              <span className="sr-only">Sentence starters:</span>
+              <span className="sr-only">Cümle başlangıçları:</span>
               {task.hints.map((h) => (
                 <button
                   key={h}
                   onClick={() => setText((t) => (t ? `${t.trimEnd()} ${h}` : h))}
-                  className="rounded-full border border-dashed border-line-strong px-2.5 py-1 font-serif text-[14px] text-ink-2 italic transition-colors hover:border-ink hover:text-ink"
-                  title="Insert into your text"
+                  className="rounded-full border border-dashed border-line-strong px-2.5 py-1 text-[13.5px] text-ink-2 transition-colors hover:border-ink-3 hover:text-ink"
+                  title="Metnine ekle"
                 >
                   {h}
                 </button>
@@ -103,17 +103,17 @@ export default function WritingModule({ level, tasks, onActivitySaved, passedIds
         </div>
 
         {shield && !text.trim() && (
-          <div className="flex flex-wrap items-center gap-3 rounded-2xl bg-emerald-soft/70 px-4 py-3">
-            <p className="min-w-0 flex-1 font-serif text-[16px] text-ink-2 italic">{starter(task)}</p>
+          <div className="flex flex-wrap items-center gap-3 rounded-[14px] border border-line bg-emerald-soft px-4 py-3">
+            <p className="min-w-0 flex-1 text-[15px] text-ink-2">{starter(task)}</p>
             <Button size="sm" onClick={() => setText(starter(task))}>
-              Start me off
+              Beni başlat
             </Button>
           </div>
         )}
 
         <Panel className="overflow-hidden">
           <label htmlFor="writing-input" className="sr-only">
-            Your answer
+            Metnin
           </label>
           <textarea
             id="writing-input"
@@ -121,16 +121,16 @@ export default function WritingModule({ level, tasks, onActivitySaved, passedIds
             onChange={(e) => setText(e.target.value)}
             rows={11}
             spellCheck={false}
-            placeholder="Start writing here. Spell-check is off, so we see your natural English."
+            placeholder="Buraya İngilizce yaz. Yazım denetimi kapalı; böylece doğal İngilizceni görebiliriz."
             style={RULED}
-            className="block w-full resize-y bg-transparent px-6 pt-5 pb-6 font-serif text-[18px] leading-[32px] text-ink placeholder:text-ink-3 focus:outline-none"
+            className="block w-full resize-y bg-transparent px-6 pt-5 pb-6 text-[16.5px] leading-[32px] text-ink placeholder:text-ink-3 focus:outline-none"
           />
           <div className="flex items-center justify-between gap-3 border-t border-line px-4 py-3">
             <span className={`font-mono text-xs ${enough ? 'text-emerald' : 'text-ink-3'}`} aria-live="polite">
-              {words} / {task.minWords}+ words
+              {words} / {task.minWords}+ kelime
             </span>
             <Button onClick={submit} disabled={!words || loading}>
-              <PaperPlaneRight size={16} weight="fill" /> {feedback ? 'Resubmit' : 'Get feedback'}
+              <PaperPlaneRight size={16} weight="fill" /> {feedback ? 'Yeniden gönder' : 'Geri bildirim al'}
             </Button>
           </div>
         </Panel>
@@ -144,18 +144,18 @@ export default function WritingModule({ level, tasks, onActivitySaved, passedIds
         {feedback && (
           <div className="flex flex-wrap gap-2">
             <Button variant="secondary" onClick={() => setFeedback(null)}>
-              <ArrowCounterClockwise size={16} /> Revise
+              <ArrowCounterClockwise size={16} /> Düzelt
             </Button>
             {tasks.length > 1 && (
               <Button variant="ghost" onClick={() => go((index + 1) % tasks.length)}>
-                Next task <ArrowRight size={16} />
+                Sonraki görev <ArrowRight size={16} />
               </Button>
             )}
           </div>
         )}
       </div>
 
-      <div className="xl:sticky xl:top-24 xl:self-start">
+      <div className="xl:sticky xl:top-[72px] xl:self-start">
         <FeedbackCard feedback={feedback} loading={loading} text={submitted} level={level} />
       </div>
     </div>

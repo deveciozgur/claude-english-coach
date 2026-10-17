@@ -20,6 +20,7 @@ import {
   SealCheck,
 } from '@phosphor-icons/react';
 import { BANDS, FUNCTIONS, SKILLS, nextBand } from '@/lib/cefr';
+import { winLabelTr } from '@/lib/tr';
 
 const ease = [0.16, 1, 0.3, 1] as const;
 
@@ -40,9 +41,9 @@ const WIN_STYLE = {
   cando: { icon: SealCheck, tone: 'emerald' },
 };
 const TONE = {
-  amber: 'bg-gradient-to-br from-amber-soft to-raised text-amber ring-amber/25',
-  emerald: 'bg-gradient-to-br from-emerald-soft to-raised text-emerald ring-emerald/25',
-  indigo: 'bg-gradient-to-br from-indigo-soft to-raised text-indigo ring-indigo/25',
+  amber: 'bg-amber-soft text-amber ring-amber/25',
+  emerald: 'bg-emerald-soft text-emerald ring-emerald/25',
+  indigo: 'bg-indigo-soft text-indigo ring-indigo/25',
 };
 
 /** Guess a win's kind from its label (history stores labels only). */
@@ -76,7 +77,7 @@ export function WinBadge({ win, index = 0, size = 'md' }) {
       className={`relative inline-flex items-center gap-1.5 overflow-hidden rounded-full ring-1 ring-inset ${TONE[tone]} ${shiny ? 'shine' : ''} ${size === 'sm' ? 'px-2.5 py-1 text-[12px]' : 'px-3 py-1.5 text-[13px]'} font-medium`}
     >
       <Icon size={size === 'sm' ? 13 : 15} weight="fill" aria-hidden />
-      <span className="text-ink">{win.label}</span>
+      <span className="text-ink">{winLabelTr(win.label)}</span>
       {win.points != null && <span className="font-mono text-[11px] opacity-80">+{win.points}</span>}
     </motion.li>
   );
@@ -86,10 +87,10 @@ export function WinBadge({ win, index = 0, size = 'md' }) {
 export function WinsBurst({ motivation }) {
   if (!motivation?.wins?.length) return null;
   return (
-    <div className="space-y-2.5" role="status" aria-label="Wins">
+    <div className="space-y-2.5" role="status" aria-label="Kazanımlar">
       <motion.div initial={{ opacity: 0, y: 4 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, ease }} className="flex items-baseline gap-2">
-        <span className="font-serif text-3xl font-medium text-amber tabular-nums">+{motivation.points}</span>
-        <span className="text-sm text-ink-2">XP, {motivation.wins.length} win{motivation.wins.length === 1 ? '' : 's'}</span>
+        <span className="text-3xl font-semibold tracking-[-0.02em] text-amber tabular-nums">+{motivation.points}</span>
+        <span className="text-sm text-ink-2">XP, {motivation.wins.length} kazanım</span>
       </motion.div>
       <ul className="flex flex-wrap gap-1.5">
         {motivation.wins.map((w, i) => (
@@ -105,7 +106,7 @@ export function WinsBurst({ motivation }) {
  * so it moves when the skills together are 4 sub-band steps above it: each step counts as 3 units and each
  * filled function slot in a skill's current band as 1, out of 12.
  */
-function slotsFilled(profile) {
+export function slotsFilled(profile) {
   const base = BANDS.indexOf(profile.sub_band);
   const units = SKILLS.reduce((n, s) => {
     const band = profile.skill_bands[s];
@@ -124,26 +125,26 @@ export function MomentumBar({ profile, compact = false }) {
   const to = nextBand(from);
   const filled = slotsFilled(profile);
   const value = filled / 12;
-  const detail = `${filled}/12 functional steps`;
+  const detail = `${filled}/12 fonksiyonel adım`;
 
   return (
-    <div className="space-y-1.5" aria-label={`Progress from ${from} to ${to}: ${detail}`}>
+    <div className="space-y-1.5" aria-label={`${from} → ${to} ilerlemesi: ${detail}`}>
       <div className="flex items-baseline justify-between text-xs">
         <span className="font-mono font-medium">
-          {from} <span className="text-ink-3">to</span> {to}
+          {from} <span className="text-ink-3">→</span> {to}
         </span>
         <span className="text-ink-3">{detail}</span>
       </div>
       <div className={`relative overflow-hidden rounded-full bg-line ${compact ? 'h-1.5' : 'h-2.5'}`}>
         <motion.div
-          className="absolute inset-y-0 left-0 w-full origin-left rounded-full bg-gradient-to-r from-amber to-emerald"
+          className="absolute inset-y-0 left-0 w-full origin-left rounded-full bg-amber"
           initial={{ scaleX: 0 }}
           animate={{ scaleX: Math.max(0.02, value) }}
           transition={{ duration: 1, ease }}
         />
         <motion.div
           key={detail}
-          className="absolute inset-y-0 w-10 bg-gradient-to-r from-transparent via-white/60 to-transparent"
+          className="absolute inset-y-0 w-10 bg-gradient-to-r from-transparent via-white/25 to-transparent"
           initial={{ left: '-10%', opacity: 0.9 }}
           animate={{ left: '110%', opacity: 0 }}
           transition={{ duration: 1.4, ease: 'easeOut' }}
@@ -157,9 +158,9 @@ export function MomentumBar({ profile, compact = false }) {
 export function MomentumStats({ profile }) {
   const g = profile.gamification ?? {};
   const items = [
-    { icon: Flame, label: 'Day streak', value: g.streak_days ?? 0, tone: 'text-amber' },
-    { icon: Lightning, label: 'Total XP', value: g.xp_total ?? 0, tone: 'text-amber' },
-    { icon: Smiley, label: 'Confidence', value: `${g.confidence_index ?? 80}`, tone: 'text-emerald' },
+    { icon: Flame, label: 'Seri (gün)', value: g.streak_days ?? 0, tone: 'text-amber' },
+    { icon: Lightning, label: 'Toplam XP', value: g.xp_total ?? 0, tone: 'text-amber' },
+    { icon: Smiley, label: 'Güven', value: `${g.confidence_index ?? 80}`, tone: 'text-emerald' },
   ];
   return (
     <dl className="grid grid-cols-3 gap-2">
@@ -168,7 +169,7 @@ export function MomentumStats({ profile }) {
           <dt className="flex items-center gap-1 text-[10.5px] text-ink-3">
             <Icon size={12} weight="fill" className={tone} /> {label}
           </dt>
-          <dd className="font-serif text-xl font-medium tabular-nums">{value}</dd>
+          <dd className="text-xl font-semibold tabular-nums">{value}</dd>
         </div>
       ))}
     </dl>

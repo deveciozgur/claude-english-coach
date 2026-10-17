@@ -26,10 +26,10 @@ const choice = (selected, state) =>
 function hintFor(q) {
   if (q.type === 'short') {
     const a = q.accept[0][0];
-    return { text: `It starts with "${a.slice(0, Math.max(1, Math.ceil(a.length / 3)))}…"` };
+    return { text: `"${a.slice(0, Math.max(1, Math.ceil(a.length / 3)))}…" ile başlıyor` };
   }
-  if (q.type === 'mc') return { text: 'One option is crossed out. Choose between the others.', remove: q.options.findIndex((_, i) => i !== q.answer) };
-  return { text: 'Find the sentence with the key word from the question, then read it slowly.' };
+  if (q.type === 'mc') return { text: 'Bir seçenek elendi. Kalanlar arasından seç.', remove: q.options.findIndex((_, i) => i !== q.answer) };
+  return { text: 'Sorudaki anahtar kelimenin geçtiği cümleyi bul ve yavaşça oku.' };
 }
 
 function Question({ q, value, onChange, checked, shield }) {
@@ -42,20 +42,20 @@ function Question({ q, value, onChange, checked, shield }) {
   return (
     <fieldset className="space-y-3">
       <legend className="flex w-full items-start gap-3">
-        <span className="w-5 shrink-0 pt-0.5 font-serif text-lg leading-none text-ink-3">{q.id}</span>
+        <span className="w-5 shrink-0 pt-0.5 font-mono text-[13px] leading-none text-ink-3">{q.id}</span>
         <span className="flex-1">
           <span className="block text-[15.5px] leading-snug font-medium">{q.q}</span>
           {q.tr && <TurkishHint className="mt-1">{q.tr}</TurkishHint>}
         </span>
         {checked ? (
           ok ? (
-            <Check size={20} weight="bold" className="shrink-0 text-emerald" aria-label="Correct" />
+            <Check size={20} weight="bold" className="shrink-0 text-emerald" aria-label="Doğru" />
           ) : (
-            <ArrowBendDownRight size={20} weight="bold" className="shrink-0 text-amber" aria-label="Almost" />
+            <ArrowBendDownRight size={20} weight="bold" className="shrink-0 text-amber" aria-label="Neredeyse" />
           )
         ) : (
           q.type !== 'yesno' && (
-            <button onClick={() => setHint((x) => !x)} className={`shrink-0 rounded-full p-1 transition-colors ${hint ? 'text-amber' : 'text-ink-3 hover:text-amber'}`} aria-pressed={hint} aria-label="Hint" title="Hint">
+            <button onClick={() => setHint((x) => !x)} className={`shrink-0 rounded-full p-1 transition-colors ${hint ? 'text-amber' : 'text-ink-3 hover:text-amber'}`} aria-pressed={hint} aria-label="İpucu" title="İpucu">
               <Lightbulb size={18} weight={hint ? 'fill' : 'regular'} />
             </button>
           )
@@ -70,8 +70,8 @@ function Question({ q, value, onChange, checked, shield }) {
             value={value ?? ''}
             disabled={checked}
             onChange={(e) => onChange(e.target.value)}
-            aria-label={`Answer to question ${q.id}`}
-            placeholder="Your answer"
+            aria-label={`${q.id}. sorunun cevabı`}
+            placeholder="Cevabın (İngilizce)"
             className={`h-11 w-full rounded-[10px] border bg-raised px-3.5 text-[15px] placeholder:text-ink-3 focus:border-ink focus:outline-none ${checked ? (ok ? 'border-emerald' : 'border-amber') : 'border-line-strong'}`}
           />
         )}
@@ -106,7 +106,7 @@ function Question({ q, value, onChange, checked, shield }) {
         )}
         {checked && !ok && q.type === 'short' && (
           <p className="mt-2 text-sm text-ink-2">
-            The key: <span className="font-medium text-emerald">{correctText(q)}</span>
+            Doğrusu: <span className="font-medium text-emerald">{correctText(q)}</span>
           </p>
         )}
       </div>
@@ -158,7 +158,7 @@ export default function ReadingModule({ level, tasks, onActivitySaved, passedIds
         </TaskTitle>
         <div className="reading mt-7 max-w-[62ch]">
           {paragraphs.map((p, i) => (
-            <p key={i} className={i === 0 ? 'first-letter:float-left first-letter:mt-1 first-letter:mr-2 first-letter:font-serif first-letter:text-[3.4em] first-letter:leading-[0.8] first-letter:font-medium' : ''}>
+            <p key={i} className={i === 0 ? 'first-letter:float-left first-letter:mt-1 first-letter:mr-2 first-letter:text-[3.2em] first-letter:leading-[0.8] first-letter:font-semibold first-letter:text-amber' : ''}>
               {p}
             </p>
           ))}
@@ -166,17 +166,17 @@ export default function ReadingModule({ level, tasks, onActivitySaved, passedIds
 
         <AnimatePresence>
           {checked && (
-            <motion.section initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] as const }} className="overflow-hidden" aria-label="Key words">
+            <motion.section initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] as const }} className="overflow-hidden" aria-label="Anahtar kelimeler">
               <div className="mt-9 border-t border-line pt-6">
-                <h3 className="mb-4 text-sm font-semibold">Key words, now in your vault</h3>
+                <h3 className="mb-4 text-sm font-semibold">Anahtar kelimeler artık kasanda</h3>
                 <dl className="grid gap-x-8 gap-y-4 sm:grid-cols-2">
                   {task.vocab.map((v) => (
                     <div key={v.word}>
-                      <dt className="font-serif text-lg font-medium">{v.word}</dt>
+                      <dt className="text-lg font-semibold tracking-[-0.01em]">{v.word}</dt>
                       <dd lang="tr" className="text-sm text-ink-3">
                         {v.meaning}
                       </dd>
-                      <dd className="mt-0.5 font-serif text-[15px] text-ink-2 italic">{v.example}</dd>
+                      <dd className="mt-0.5 text-[14.5px] text-ink-2">{v.example}</dd>
                     </div>
                   ))}
                 </dl>
@@ -195,9 +195,9 @@ export default function ReadingModule({ level, tasks, onActivitySaved, passedIds
           {!checked ? (
             <div className="flex flex-wrap items-center gap-4">
               <Button onClick={check} disabled={!answeredAll} size="lg">
-                Check answers
+                Cevapları kontrol et
               </Button>
-              {!answeredAll && <span className="text-sm text-ink-3">Answer every question. Not sure? Write &ldquo;I don&rsquo;t know&rdquo;.</span>}
+              {!answeredAll && <span className="text-sm text-ink-3">Her soruyu cevapla. Emin değil misin? &ldquo;I don&rsquo;t know&rdquo; yaz.</span>}
             </div>
           ) : (
             <div className="space-y-5">
@@ -205,19 +205,19 @@ export default function ReadingModule({ level, tasks, onActivitySaved, passedIds
                 <Score value={score} />
                 <div>
                   <div className="font-medium">
-                    {correct} of {task.questions.length} correct
+                    {task.questions.length} sorudan {correct} doğru
                   </div>
-                  <p className="text-sm text-ink-2">{score >= MASTERY ? `Strong reading. This text counts toward ${level} mastery.` : `${correct} answer${correct === 1 ? '' : 's'} found, nice start. Re-read the text and the rest will click; the hints are there if you want them.`}</p>
+                  <p className="text-sm text-ink-2">{score >= MASTERY ? `Güçlü bir okuma. Bu metin ${level} ustalığına sayılıyor.` : `${correct} doğru cevap, güzel bir başlangıç. Metni yeniden oku, gerisi oturacak; istersen ipuçları hazır.`}</p>
                 </div>
               </div>
               <SaveReceipt result={activity.result} error={activity.error} />
               <div className="flex flex-wrap gap-2">
                 <Button variant="secondary" onClick={() => go(index)}>
-                  <ArrowCounterClockwise size={16} /> Retry
+                  <ArrowCounterClockwise size={16} /> Tekrar dene
                 </Button>
                 {tasks.length > 1 && (
                   <Button variant="ghost" onClick={() => go((index + 1) % tasks.length)}>
-                    Next text <ArrowRight size={16} />
+                    Sonraki metin <ArrowRight size={16} />
                   </Button>
                 )}
               </div>

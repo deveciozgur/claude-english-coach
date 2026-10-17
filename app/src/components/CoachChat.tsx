@@ -63,24 +63,24 @@ export default function CoachChat({ llm }) {
     <div className="space-y-6">
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <h1 className="font-serif text-[44px] leading-none font-medium tracking-tight">Coach</h1>
-          <p className="mt-2 text-ink-2">Talk to Lumos. It knows your sub-bands, streak, due words and polish patterns.</p>
+          <h1 className="text-[30px] leading-tight font-semibold tracking-[-0.03em]">Koç</h1>
+          <p className="mt-2 text-ink-2">Lumos ile İngilizce konuş. Alt bantlarını, serini, tekrar zamanı gelen kelimelerini ve Polish kalıplarını biliyor.</p>
         </div>
         {messages.length > 0 && (
           <Button variant="ghost" size="sm" onClick={() => setMessages([])} disabled={busy}>
-            <ArrowCounterClockwise size={14} /> New chat
+            <ArrowCounterClockwise size={14} /> Yeni sohbet
           </Button>
         )}
       </header>
 
-      {!llm && <p className="rounded-xl border border-dashed border-line-strong px-4 py-3 text-sm text-ink-2">The AI coach is offline. Add <code className="font-mono">GEMINI_API_KEY</code> to the <code className="font-mono">.env</code> file next to <code className="font-mono">api.php</code>. The Studio tasks keep working with offline feedback.</p>}
+      {!llm && <p className="rounded-xl border border-dashed border-line-strong px-4 py-3 text-sm text-ink-2">Yapay zekâ koçu çevrimdışı. <code className="font-mono">api.php</code> ile aynı klasördeki <code className="font-mono">.env</code> dosyasına <code className="font-mono">GEMINI_API_KEY</code> ekleyin. Çalışma görevleri çevrimdışı geri bildirimle çalışmaya devam eder.</p>}
 
       <Panel className="flex min-h-[460px] flex-col">
         <div className="flex-1 space-y-6 px-6 py-6" aria-live="polite">
           {messages.length === 0 ? (
             <div className="space-y-4">
               <p className="inline-flex items-center gap-2 text-sm text-ink-3">
-                <Sparkle size={16} /> Try one of these
+                <Sparkle size={16} /> Bunlardan birini dene
               </p>
               <div className="flex flex-wrap gap-2">
                 {STARTERS.map((s) => (
@@ -93,12 +93,12 @@ export default function CoachChat({ llm }) {
           ) : (
             messages.map((m, i) =>
               m.role === 'user' ? (
-                <div key={i} className="ml-auto max-w-[80%] rounded-2xl rounded-br-md bg-ink px-4 py-2.5 whitespace-pre-wrap text-paper">
+                <div key={i} className="ml-auto max-w-[80%] rounded-[12px] rounded-br-[4px] border border-line-strong bg-sunk px-3.5 py-2.5 whitespace-pre-wrap text-ink">
                   {m.content}
                 </div>
               ) : (
                 <div key={i} className="prose-session max-w-[65ch] text-[15px]">
-                  {m.content ? <div dangerouslySetInnerHTML={{ __html: marked.parse(m.content) }} /> : <span className="inline-block h-4 w-2 animate-pulse bg-ink-3" aria-label="Coach is typing" />}
+                  {m.content ? <div dangerouslySetInnerHTML={{ __html: marked.parse(m.content) }} /> : <span className="inline-block h-4 w-2 animate-pulse bg-ink-3" aria-label="Koç yazıyor" />}
                 </div>
               ),
             )
@@ -120,7 +120,7 @@ export default function CoachChat({ llm }) {
           className="flex items-end gap-2 border-t border-line p-3"
         >
           <label htmlFor="chat-input" className="sr-only">
-            Message the coach
+            Koça mesaj yaz
           </label>
           <textarea
             id="chat-input"
@@ -133,17 +133,17 @@ export default function CoachChat({ llm }) {
                 send(draft);
               }
             }}
-            placeholder={llm ? 'Write in English. Enter to send, Shift+Enter for a new line.' : 'AI coach offline'}
+            placeholder={llm ? 'İngilizce yaz. Göndermek için Enter, yeni satır için Shift+Enter.' : 'Yapay zekâ koçu çevrimdışı'}
             disabled={!llm}
             className="min-h-12 flex-1 resize-none rounded-xl bg-sunk px-4 py-3 outline-none focus:ring-2 focus:ring-line-strong"
           />
           {busy ? (
             <Button type="button" variant="secondary" onClick={() => abort.current?.abort()}>
-              <Stop size={16} /> Stop
+              <Stop size={16} /> Durdur
             </Button>
           ) : (
             <Button type="submit" disabled={!draft.trim() || !llm}>
-              <PaperPlaneRight size={16} /> Send
+              <PaperPlaneRight size={16} /> Gönder
             </Button>
           )}
         </form>

@@ -4,6 +4,7 @@ import { motion } from 'motion/react';
 import { BookOpenText, PenNib, Headphones, Microphone, CheckCircle, TrendUp, FileText, WarningCircle, Check, SealCheck } from '@phosphor-icons/react';
 import { FUNCTIONS, FUNCTION_INFO, LEVELS, MASTERY, band, cap, canDoStatement, levelIndex } from '@/lib/cefr';
 import { WinsBurst } from './momentum';
+import { FUNCTION_TR, fnTr, skillTr, themeTr } from '@/lib/tr';
 
 export const SKILL_ICONS = { reading: BookOpenText, writing: PenNib, listening: Headphones, speaking: Microphone };
 
@@ -26,7 +27,7 @@ export function CefrLadder({ level, label }) {
   const idx = levelIndex(level);
   const b = bandClasses(level);
   return (
-    <div className="flex items-center gap-[3px]" role="meter" aria-label={label ?? `Level ${level}`} aria-valuemin={1} aria-valuemax={6} aria-valuenow={idx + 1} aria-valuetext={level}>
+    <div className="flex items-center gap-[3px]" role="meter" aria-label={label ?? `Seviye ${level}`} aria-valuemin={1} aria-valuemax={6} aria-valuenow={idx + 1} aria-valuetext={level}>
       {LEVELS.map((l, i) => (
         <span key={l} title={l} className={`h-[5px] flex-1 rounded-full transition-colors duration-500 ${i <= idx ? b.fill : 'bg-line'}`} />
       ))}
@@ -36,7 +37,7 @@ export function CefrLadder({ level, label }) {
 
 export function Panel({ as: Tag = 'div', className = '', children, ...props }: { as?: React.ElementType; className?: string; children?: React.ReactNode; [prop: string]: unknown }) {
   return (
-    <Tag className={`rounded-2xl border border-line bg-raised shadow-paper ${className}`} {...props}>
+    <Tag className={`rounded-[14px] border border-line bg-raised shadow-paper ${className}`} {...props}>
       {children}
     </Tag>
   );
@@ -44,8 +45,8 @@ export function Panel({ as: Tag = 'div', className = '', children, ...props }: {
 
 const BTN = {
   primary: 'bg-ink text-paper hover:bg-ink-2 disabled:bg-line-strong disabled:text-paper',
-  secondary: 'border border-line-strong text-ink hover:border-ink hover:bg-raised disabled:text-ink-3 disabled:border-line',
-  ghost: 'text-ink-2 hover:bg-sunk hover:text-ink disabled:text-ink-3',
+  secondary: 'border border-line-strong bg-sunk/50 text-ink hover:border-ink-3 hover:bg-hover disabled:text-ink-3 disabled:border-line',
+  ghost: 'text-ink-2 hover:bg-hover hover:text-ink disabled:text-ink-3',
   danger: 'bg-brick text-paper hover:opacity-90',
 };
 
@@ -88,13 +89,13 @@ export function Segmented({ id, items, value, onChange, size = 'md', className =
   );
 }
 
-/** Large serif score with a hairline arc. */
-export function Score({ value, label = 'score' }) {
+/** Large score numeral with a hairline arc. */
+export function Score({ value, label = 'puan' }) {
   const r = 26;
   const c = 2 * Math.PI * r;
   const tone = value >= MASTERY ? 'text-emerald' : 'text-amber';
   return (
-    <div className="relative grid size-[68px] shrink-0 place-items-center" role="img" aria-label={`${label} ${value} out of 100`}>
+    <div className="relative grid size-[68px] shrink-0 place-items-center" role="img" aria-label={`${label} ${value} / 100`}>
       <svg viewBox="0 0 60 60" className="absolute inset-0 -rotate-90">
         <circle cx="30" cy="30" r={r} strokeWidth="1.5" className="fill-none stroke-line" />
         <motion.circle
@@ -110,7 +111,7 @@ export function Score({ value, label = 'score' }) {
           transition={{ duration: 0.9, ease: [0.16, 1, 0.3, 1] as const }}
         />
       </svg>
-      <span className="font-serif text-[26px] leading-none font-medium tabular-nums">{value}</span>
+      <span className="text-[26px] leading-none font-semibold tracking-[-0.02em] tabular-nums">{value}</span>
     </div>
   );
 }
@@ -124,7 +125,7 @@ export function SaveReceipt({ result, error }) {
   if (error)
     return (
       <p className="flex items-start gap-2 text-sm text-brick" role="alert">
-        <WarningCircle size={18} className="mt-px shrink-0" /> Progress was not saved: {error}
+        <WarningCircle size={18} className="mt-px shrink-0" /> İlerleme kaydedilemedi: {error}
       </p>
     );
   if (!result) return null;
@@ -134,36 +135,36 @@ export function SaveReceipt({ result, error }) {
       <WinsBurst motivation={result.motivation} />
       <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
         <span className="inline-flex items-center gap-1.5 font-medium text-emerald">
-          <CheckCircle size={18} weight="fill" /> Saved
+          <CheckCircle size={18} weight="fill" /> Kaydedildi
         </span>
         {bandChange ? (
           <span className="inline-flex items-center gap-1.5 font-medium">
-            <TrendUp size={16} /> {cap(bandChange.skill)} {bandChange.from} to {bandChange.to}
+            <TrendUp size={16} /> {skillTr(bandChange.skill)} {bandChange.from} → {bandChange.to}
           </span>
         ) : (
           functions && (
-            <span className="inline-flex items-center gap-1.5 text-[13px] text-ink-3" title={`Functional tasks done toward the next sub-band from ${functions.band}`}>
+            <span className="inline-flex items-center gap-1.5 text-[13px] text-ink-3" title={`${functions.band} bandından sonraki alt banda doğru tamamlanan fonksiyonel görevler`}>
               {FUNCTIONS.map((f) => (
                 <span key={f} className={`grid size-[18px] place-items-center rounded-full font-mono text-[9.5px] font-semibold ${functions.done.includes(f) ? 'bg-emerald text-paper' : 'border border-dashed border-line-strong'}`}>
                   {FUNCTION_INFO[f].short}
                 </span>
               ))}
-              at {functions.band}
+              {functions.band} bandında
             </span>
           )
         )}
-        {addedWords.length > 0 && <span className="text-ink-3">{addedWords.length} new word{addedWords.length > 1 ? 's' : ''}</span>}
-        {loggedErrors.length > 0 && <span className="text-ink-3">{loggedErrors.length} error{loggedErrors.length > 1 ? 's' : ''} logged</span>}
+        {addedWords.length > 0 && <span className="text-ink-3">{addedWords.length} yeni kelime</span>}
+        {loggedErrors.length > 0 && <span className="text-ink-3">{loggedErrors.length} kalıp deftere yazıldı</span>}
       </div>
       {canDo && (
         <p className="flex items-start gap-1.5 font-medium text-emerald">
-          <SealCheck size={17} weight="fill" className="mt-px shrink-0" /> Can-Do achieved: <span className="font-normal text-ink">{canDo}</span>
+          <SealCheck size={17} weight="fill" className="mt-px shrink-0" /> Can-Do kazanıldı: <span className="font-normal text-ink">{canDo}</span>
         </p>
       )}
       {(credited.length > 0 || resolvedErrors.length > 0) && (
         <p className="text-ink-2">
-          {resolvedErrors.length > 0 && <span className="font-medium text-emerald">Resolved: {resolvedErrors.map((e) => e.after).join(', ')}. </span>}
-          {credited.filter((e) => !resolvedErrors.some((r) => r.id === e.id)).map((e) => `"${e.after}" used correctly (${e.streak}/3)`).join(', ')}
+          {resolvedErrors.length > 0 && <span className="font-medium text-emerald">Çözüldü: {resolvedErrors.map((e) => e.after).join(', ')}. </span>}
+          {credited.filter((e) => !resolvedErrors.some((r) => r.id === e.id)).map((e) => `"${e.after}" doğru kullanıldı (${e.streak}/3)`).join(', ')}
         </p>
       )}
       <div className="flex flex-wrap gap-1.5">
@@ -180,17 +181,17 @@ export function SaveReceipt({ result, error }) {
 export function TaskPicker({ tasks, index, onChange, passedIds = [] }) {
   if (tasks.length < 2) return null;
   return (
-    <div className="flex flex-wrap justify-end gap-1" aria-label="Choose task">
+    <div className="flex flex-wrap justify-end gap-1" aria-label="Görev seç">
       {tasks.map((t, i) => {
         const passed = passedIds.includes(t.id);
         return (
           <button
             key={t.id}
             onClick={() => onChange(i)}
-            title={`${t.title}${passed ? ' (passed at 80%+)' : ''}`}
+            title={`${t.title}${passed ? ' (%80+ ile geçildi)' : ''}`}
             aria-pressed={i === index}
-            aria-label={`Task ${i + 1}${passed ? ', passed' : ''}`}
-            className={`relative grid size-7 place-items-center rounded-full font-mono text-xs transition-colors ${i === index ? 'bg-ink text-paper' : passed ? 'bg-emerald-soft text-emerald' : 'text-ink-3 hover:bg-sunk hover:text-ink'}`}
+            aria-label={`Görev ${i + 1}${passed ? ', geçildi' : ''}`}
+            className={`relative grid size-7 place-items-center rounded-full font-mono text-xs transition-colors ${i === index ? 'bg-ink text-paper' : passed ? 'bg-emerald-soft text-emerald' : 'text-ink-3 hover:bg-hover hover:text-ink'}`}
           >
             {passed && i !== index ? <Check size={13} weight="bold" /> : i + 1}
           </button>
@@ -205,10 +206,10 @@ export function TurkishHint({ children, className = '' }) {
   if (!children) return null;
   return (
     <span className={`inline-flex items-baseline gap-1.5 ${className}`}>
-      <span className="rounded-full bg-sunk px-1.5 py-px font-mono text-[10px] text-ink-3" aria-label="Turkish">
+      <span className="rounded-full bg-sunk px-1.5 py-px font-mono text-[10px] text-ink-3" aria-label="Türkçe">
         TR
       </span>
-      <span lang="tr" className="font-serif text-[15px] text-ink-3 italic">
+      <span lang="tr" className="text-[14px] text-ink-3">
         {children}
       </span>
     </span>
@@ -224,19 +225,19 @@ export function TaskTitle({ level, title, theme, hook, fn, skill, children }) {
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2.5">
           <LevelBadge level={level} />
-          <h2 className="truncate font-serif text-[22px] leading-tight font-medium tracking-tight">{title}</h2>
+          <h2 className="truncate text-[22px] leading-tight font-semibold tracking-[-0.02em]">{title}</h2>
         </div>
         {children}
       </div>
       {(theme || hook) && (
         <p className="flex flex-wrap items-baseline gap-x-2 text-[14px]">
-          {theme && <span className={`text-[12px] font-semibold ${THEME_TONE[theme] ?? 'text-ink-2'}`}>{theme}</span>}
-          {hook && <span className="font-serif text-ink-2 italic">{hook}</span>}
+          {theme && <span className={`text-[12px] font-semibold ${THEME_TONE[theme] ?? 'text-ink-2'}`}>{themeTr(theme)}</span>}
+          {hook && <span className="text-ink-2">{hook}</span>}
         </p>
       )}
       {fn && (
-        <p className="flex items-start gap-2 text-[12.5px] text-ink-3" title={FUNCTION_INFO[fn].about}>
-          <span className="shrink-0 rounded-full bg-sunk px-2 py-0.5 font-medium text-ink-2">{FUNCTION_INFO[fn].label}</span>
+        <p className="flex items-start gap-2 text-[12.5px] text-ink-3" title={FUNCTION_TR[fn]?.about}>
+          <span className="shrink-0 rounded-full border border-line bg-sunk px-2 py-0.5 font-medium text-ink-2">{fnTr(fn)}</span>
           <span>{canDo}</span>
         </p>
       )}

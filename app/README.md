@@ -10,6 +10,8 @@ npm run typecheck  # tsc --noEmit
 npm run build      # next build (out/) + ../hosting-release.zip
 ```
 
+Interface: Concept C "Dark Elegance" with a light theme (tokens in `src/app/globals.css`, toggle and persistence in `src/lib/theme.ts`), Turkish UI strings (`src/lib/tr.ts`; learning content stays English).
+
 It reads and writes the same state files as the coach does:
 
 | File | Updated when |
@@ -70,12 +72,12 @@ php -S localhost:8080
 
 ## Design system
 
-Editorial, warm-paper look, defined as CSS variables in `src/app/globals.css` that switch automatically with the system light/dark setting.
+Concept C "Dark Elegance", defined as CSS variables in `src/app/globals.css`. Dark is the base palette; `<html data-theme="light">` switches to the light one. An inline script in `layout.tsx` applies the stored choice (`localStorage['lumos.theme']`) or, without one, the system setting before first paint; the sun/moon button toggles and stores it.
 
-- **Type:** Newsreader (serif, optical sizes) for reading texts, prompts, feedback and headings; Geist for the interface; Geist Mono for CEFR codes and figures. All self-hosted via `@fontsource`, no external font requests.
-- **Colour:** warm stone paper surfaces and deep slate ink. Interactive elements use ink; colour only carries meaning: amber = A levels and hints, emerald = B levels and correct answers, indigo = C levels and phonetics, brick = errors.
-- **Shape:** panels 16px, inputs 10px, buttons, badges and tabs fully rounded.
-- **Motion:** `motion` for state changes only (tab indicator, accordion, score arc, entries). Respects `prefers-reduced-motion`.
+- **Type:** Geist for everything (headings tight at -0.03em), Geist Mono for CEFR codes, figures and meta. Self-hosted via `@fontsource`, no external font requests.
+- **Colour:** dark `#0A0A0B` / `#111113` surfaces with `#232327` hairlines and `#EDEDEF` ink; light `#F4F4F5` / `#FFFFFF` with `#18181B` ink. One accent, champagne `#E8C07D` (bronze `#946318` in light), for progress and the CEFR ladder. Meaning colours: emerald = strengths and correct answers, indigo = recasts and phonetics, brick = deletions.
+- **Shape:** panels 14px with a coloured hairline on top of the feedback cards, inputs 10px, buttons, badges and tabs fully rounded. Shadows only in the light theme.
+- **Motion:** `motion` for state changes only (tab indicator, accordion, score arc, theme icon). Respects `prefers-reduced-motion`.
 - **Icons:** Phosphor.
 
 ## Structure

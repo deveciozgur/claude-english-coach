@@ -71,7 +71,7 @@ DATA_DIR=data
 
 1. `https://coach.ozgurdeveci.com` adresine git ve PIN'ini gir.
 2. `data/` pakette hazır gelir; `api.php` ilk istekte eksik koruma dosyalarını (`.htaccess`, `index.html`) tamamlar.
-3. Oturum 30 gün açık kalır. Sağ üstteki kilit simgesiyle kapatabilirsin.
+3. Oturum 30 gün açık kalır. Sağ üstteki kilit simgesiyle kapatabilirsin; güneş/ay simgesi koyu ve açık tema arasında geçiş yapar (tercih tarayıcıda saklanır).
 
 Klasör izin hatası alırsan Dosya Yöneticisi'nde site klasörüne yazma izni ver (genelde 755), ya da `data/` klasörünü kendin oluştur.
 
@@ -120,4 +120,4 @@ Diğer önlemler:
 | Coach "Gemini rejected the API key" diyor | `GEMINI_API_KEY` yanlış ya da bu anahtarda Gemini API kapalı. |
 | Coach "model was not found" diyor | `GEMINI_MODEL` değerini düzelt (örneğin `gemini-flash-latest`). |
 | Coach yanıtı bir anda geliyor | Host çıktıyı tamponluyor. Yine çalışır, sadece akış efekti olmaz. |
-| Header'da "Offline feedback" yazıyor | `GEMINI_API_KEY` boş. Çevrimdışı geri bildirim yine çalışır. |
+| Üst çubukta "Çevrimdışı geri bildirim" yazıyor | `GEMINI_API_KEY` boş. Çevrimdışı geri bildirim yine çalışır. |

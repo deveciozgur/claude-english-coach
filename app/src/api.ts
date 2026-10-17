@@ -102,7 +102,7 @@ export async function streamChat(messages: { role: string; content: string }[], 
   if (!res.ok) {
     const data = await res.json().catch(() => ({}));
     if (res.status === 401 && data.locked) window.dispatchEvent(new Event('lumos:locked'));
-    throw new Error(data.error ?? `Request failed (${res.status})`);
+    throw new Error(data.error ?? `İstek başarısız (${res.status})`);
   }
   const reader = res.body.pipeThrough(new TextDecoderStream()).getReader();
   let buffer = '';

@@ -1,71 +1,82 @@
-@import '@fontsource-variable/newsreader/opsz.css';
-@import '@fontsource-variable/newsreader/opsz-italic.css';
 @import '@fontsource-variable/geist/wght.css';
 @import '@fontsource-variable/geist-mono/wght.css';
 @import 'tailwindcss';
 
 /*
-  Design tokens.
-  Surfaces are warm paper, text is deep slate ink.
-  Accent rule: interactive elements use ink (no brand accent). Colour is reserved for meaning:
-    amber   = CEFR A band, hints, attention
-    emerald = CEFR B band, correct answers, vocabulary upgrades
-    indigo  = CEFR C band, pronunciation / phonetics
-    brick   = errors and deletions in diffs
-  Shape rule: panels 16px, inputs 10px, buttons/badges/tabs full pill.
+  Design tokens: Concept C "Dark Elegance", in two themes.
+  Dark (default): near-black surfaces, 1px hairlines, one champagne accent.
+  Light: the same hierarchy on cool porcelain, with the accent deepened to bronze for contrast.
+  The theme is set on <html data-theme="dark|light"> by the inline script in layout.tsx
+  (stored choice, else the system setting) and switched with the sun/moon toggle.
+
+  Colour carries meaning, never decoration:
+    amber   = champagne/bronze accent: progress, CEFR A band, hints
+    emerald = strengths, correct answers, vocabulary upgrades, CEFR B band
+    indigo  = recasts, pronunciation / phonetics, CEFR C band
+    brick   = deletions in diffs, errors
+  Interactive elements use ink. Shape: panels 14px, inputs 10px, buttons/badges/tabs full pill.
 */
 :root {
-  color-scheme: light;
-  --paper: #f2f0eb;
-  --paper-raised: #faf9f6;
-  --paper-sunk: #e8e5de;
-  --line: #dcd8cf;
-  --line-strong: #c3beb3;
-  --ink: #1f2328;
-  --ink-2: #464a50;
-  --ink-3: #66655f;
-  --emerald: #1d7051;
-  --emerald-soft: #dcebe2;
-  --amber: #8f5a0c;
-  --amber-soft: #f1e4cc;
-  --indigo: #3b4596;
-  --indigo-soft: #e2e4f3;
-  --brick: #9e3529;
-  --brick-soft: #f3ddd8;
-  --shadow: 32 28 20;
+  color-scheme: dark;
+  --paper: #0a0a0b;
+  --paper-raised: #111113;
+  --paper-sunk: #18181b;
+  --panel: #111113;
+  --hover: #1f1f23;
+  --line: #232327;
+  --line-strong: #2e2e33;
+  --ink: #ededef;
+  --ink-2: #a1a1aa;
+  --ink-3: #7c7c86;
+  --emerald: #4ade80;
+  --emerald-soft: rgb(74 222 128 / 0.12);
+  --amber: #e8c07d;
+  --amber-soft: rgb(232 192 125 / 0.14);
+  --indigo: #7dd3fc;
+  --indigo-soft: rgb(125 211 252 / 0.12);
+  --brick: #f87171;
+  --brick-soft: rgb(248 113 113 / 0.12);
+  --glow: rgb(232 192 125 / 0.45);
+  --shadow: 0 0 0;
+  --shadow-strength: 0;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    color-scheme: dark;
-    --paper: #15171a;
-    --paper-raised: #1c1f23;
-    --paper-sunk: #101215;
-    --line: #2b2f35;
-    --line-strong: #3d424a;
-    --ink: #ecebe6;
-    --ink-2: #bcbab3;
-    --ink-3: #96948d;
-    --emerald: #6cc6a0;
-    --emerald-soft: #1b3329;
-    --amber: #e3ad5c;
-    --amber-soft: #3a2c16;
-    --indigo: #a3abee;
-    --indigo-soft: #252a4a;
-    --brick: #e88f84;
-    --brick-soft: #3d201c;
-    --shadow: 0 0 0;
-  }
+:root[data-theme='light'] {
+  color-scheme: light;
+  --paper: #f4f4f5;
+  --paper-raised: #ffffff;
+  --paper-sunk: #ececee;
+  --panel: #fafafa;
+  --hover: #e9e9ec;
+  --line: #e4e4e7;
+  --line-strong: #d4d4d8;
+  --ink: #18181b;
+  --ink-2: #52525b;
+  --ink-3: #6b6b74;
+  --emerald: #15803d;
+  --emerald-soft: rgb(21 128 61 / 0.1);
+  --amber: #946318;
+  --amber-soft: rgb(176 124 40 / 0.14);
+  --indigo: #0369a1;
+  --indigo-soft: rgb(3 105 161 / 0.09);
+  --brick: #b91c1c;
+  --brick-soft: rgb(185 28 28 / 0.08);
+  --glow: rgb(176 124 40 / 0.25);
+  --shadow: 24 24 27;
+  --shadow-strength: 1;
 }
 
 @theme inline {
-  --font-sans: 'Geist Variable', ui-sans-serif, system-ui, sans-serif;
-  --font-serif: 'Newsreader Variable', 'Iowan Old Style', Georgia, serif;
+  --font-sans: 'Geist Variable', -apple-system, ui-sans-serif, system-ui, sans-serif;
+  /* Concept C sets everything in Geist; "serif" classes are kept as the display/reading face. */
+  --font-serif: 'Geist Variable', -apple-system, ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'Geist Mono Variable', ui-monospace, monospace;
 
   --color-paper: var(--paper);
   --color-raised: var(--paper-raised);
   --color-sunk: var(--paper-sunk);
+  --color-panel: var(--panel);
+  --color-hover: var(--hover);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
   --color-ink: var(--ink);
@@ -80,12 +91,14 @@
   --color-brick: var(--brick);
   --color-brick-soft: var(--brick-soft);
 
-  --shadow-paper: 0 1px 0 rgb(var(--shadow) / 0.04), 0 12px 32px -18px rgb(var(--shadow) / 0.28);
+  /* Light theme: a soft lift. Dark theme: hairlines only (shadow strength 0). */
+  --shadow-paper: 0 1px 0 rgb(var(--shadow) / calc(0.04 * var(--shadow-strength))), 0 12px 32px -18px rgb(var(--shadow) / calc(0.22 * var(--shadow-strength)));
   --ease-out-quint: cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 html {
   font-feature-settings: 'ss01', 'cv11';
+  transition: background-color 0.2s ease;
   -webkit-text-size-adjust: 100%;
 }
 
@@ -99,31 +112,39 @@ body {
 }
 
 :focus-visible {
-  outline: 2px solid var(--ink);
+  outline: 2px solid color-mix(in srgb, var(--amber) 75%, transparent);
   outline-offset: 2px;
 }
 
-/* Fine paper grain, fixed and non-interactive so it never repaints on scroll. */
-body::before {
-  content: '';
-  position: fixed;
-  inset: 0;
-  pointer-events: none;
-  z-index: 0;
-  opacity: 0.035;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
-}
-#root {
+/* Hairline accent across the top edge of a card (Concept C). Set --edge to a colour token. */
+.edge-top {
   position: relative;
-  z-index: 1;
+}
+.edge-top::before {
+  content: '';
+  position: absolute;
+  left: 16px;
+  right: 16px;
+  top: -1px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--edge, var(--amber)), transparent);
+  pointer-events: none;
+}
+
+/* Display numerals and headings with a soft vertical gradient (dark) / solid ink (light). */
+.text-sheen {
+  background: linear-gradient(180deg, var(--ink), color-mix(in srgb, var(--ink) 62%, var(--paper)));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 /* Long-form reading text */
 .reading {
   font-family: var(--font-serif);
-  font-optical-sizing: auto;
-  font-size: 1.1875rem;
+  font-size: 1.125rem;
   line-height: 1.75;
+  letter-spacing: -0.005em;
   color: var(--ink);
   hanging-punctuation: first;
 }
@@ -165,7 +186,7 @@ body::before {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.55) 50%, transparent 70%);
+  background: linear-gradient(110deg, transparent 30%, rgb(255 255 255 / 0.35) 50%, transparent 70%);
   transform: translateX(-120%);
   animation: sheen 1.6s 0.4s ease-out 1 forwards;
   pointer-events: none;

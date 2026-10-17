@@ -6,6 +6,7 @@ import { Gift, CaretDown, Flame, Medal, TrendUp, Trophy, BookmarkSimple, SealChe
 import { api } from '@/api';
 import { readStored, writeStored } from '@/lib/useActivity';
 import { Panel } from './ui';
+import { skillTr, winLabelTr } from '@/lib/tr';
 import { WinBadge } from './momentum';
 
 const ease = [0.16, 1, 0.3, 1] as const;
@@ -31,27 +32,27 @@ export default function DailyLoot({ refreshKey }) {
   const milestoneTitles = new Set(loot.milestones.map((x) => x.title));
   const wins = [...new Set<string>(loot.wins)].filter((w) => !milestoneTitles.has(w));
   const obstacles = [
-    ...loot.bandUps.map((l) => ({ icon: TrendUp, text: `${l.skill[0].toUpperCase() + l.skill.slice(1)} ${l.change.replace('→', ' to ')}` })),
+    ...loot.bandUps.map((l) => ({ icon: TrendUp, text: `${skillTr(l.skill)} ${l.change}` })),
     ...loot.canDos.map((c) => ({ icon: SealCheck, text: `Can-Do: ${c.statement}` })),
-    ...loot.resolved.map((e) => ({ icon: Trophy, text: `Mastered "${e.after}"` })),
+    ...loot.resolved.map((e) => ({ icon: Trophy, text: `Ustalaştın: "${e.after}"` })),
   ];
 
   return (
-    <Panel as="section" aria-label="Daily loot" className="relative overflow-hidden">
-      <div className="pointer-events-none absolute -top-16 -right-10 size-56 rounded-full bg-amber-soft blur-3xl" aria-hidden />
+    <Panel as="section" aria-label="Günlük ganimet" className="relative overflow-hidden">
+      <div className="pointer-events-none absolute -top-20 -right-12 size-56 rounded-full bg-amber-soft blur-3xl" aria-hidden />
       <button onClick={toggle} aria-expanded={open} className="relative flex w-full items-center gap-4 px-6 py-4 text-left">
-        <span className="grid size-11 shrink-0 place-items-center rounded-full bg-amber text-paper shadow-paper">
+        <span className="grid size-10 shrink-0 place-items-center rounded-xl border border-line bg-amber-soft text-amber">
           <Gift size={22} weight="fill" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block font-serif text-2xl leading-tight font-medium">Daily Loot</span>
-          <span lang="tr" className="block font-serif text-[15px] text-ink-3 italic">
-            Bugün neler kazandın?{!open && <span className="ml-2 font-sans text-xs not-italic">{wins.length} wins, {loot.milestones.length} milestones, {loot.words.length} words</span>}
+          <span className="block text-lg leading-tight font-semibold tracking-[-0.02em]">Günlük Ganimet</span>
+          <span className="block text-[13.5px] text-ink-3">
+            Bugün neler kazandın?{!open && <span className="ml-2 text-xs">{wins.length} kazanım, {loot.milestones.length} rozet, {loot.words.length} kelime</span>}
           </span>
         </span>
         <span className="text-right">
-          <span className="block font-serif text-3xl leading-none font-medium text-amber tabular-nums">+{loot.points}</span>
-          <span className="text-xs text-ink-3">XP today</span>
+          <span className="block text-[28px] leading-none font-semibold tracking-[-0.02em] text-amber tabular-nums">+{loot.points}</span>
+          <span className="text-xs text-ink-3">bugünkü XP</span>
         </span>
         <CaretDown size={16} className={`shrink-0 text-ink-3 transition-transform ${open ? 'rotate-180' : ''}`} />
       </button>
@@ -61,23 +62,23 @@ export default function DailyLoot({ refreshKey }) {
           <div className="space-y-5 border-t border-line px-6 pt-5 pb-6">
             <dl className="grid grid-cols-2 gap-3 sm:grid-cols-4">
               {[
-                ['Streak', `${loot.streak} day${loot.streak === 1 ? '' : 's'}`, Flame],
-                ['Tasks', loot.activities, null],
-                ['Reviews', loot.reviews, null],
-                ['Sub-band', loot.subBand, null],
+                ['Seri', `${loot.streak} gün`, Flame],
+                ['Görev', loot.activities, null],
+                ['Tekrar', loot.reviews, null],
+                ['Alt bant', loot.subBand, null],
               ].map(([label, value, Icon]) => (
                 <div key={label}>
                   <dt className="flex items-center gap-1 text-xs text-ink-3">
                     {Icon && <Icon size={12} weight="fill" className="text-amber" />}
                     {label}
                   </dt>
-                  <dd className="font-serif text-2xl font-medium tabular-nums">{value}</dd>
+                  <dd className="text-xl font-semibold tracking-[-0.02em] tabular-nums">{value}</dd>
                 </div>
               ))}
             </dl>
 
             <div>
-              <h3 className="mb-2 text-sm font-semibold">Wins</h3>
+              <h3 className="mb-2 text-sm font-semibold">Kazanımlar</h3>
               <ul className="flex flex-wrap gap-1.5">
                 {wins.map((w, i) => (
                   <WinBadge key={w} win={{ label: w }} index={i} size="sm" />
@@ -87,11 +88,11 @@ export default function DailyLoot({ refreshKey }) {
 
             {loot.milestones.length > 0 && (
               <div>
-                <h3 className="mb-2 text-sm font-semibold">Milestones unlocked</h3>
+                <h3 className="mb-2 text-sm font-semibold">Açılan rozetler</h3>
                 <ul className="grid gap-2 sm:grid-cols-2">
                   {loot.milestones.map((x) => (
-                    <li key={x.id} className="shine relative flex items-center gap-2.5 overflow-hidden rounded-[10px] bg-gradient-to-r from-amber-soft to-emerald-soft px-3 py-2.5 text-sm font-medium">
-                      <Medal size={18} weight="fill" className="text-amber" /> {x.title}
+                    <li key={x.id} className="shine relative flex items-center gap-2.5 overflow-hidden rounded-[10px] border border-line bg-amber-soft px-3 py-2.5 text-sm font-medium">
+                      <Medal size={18} weight="fill" className="text-amber" /> {winLabelTr(x.title)}
                     </li>
                   ))}
                 </ul>
@@ -100,10 +101,10 @@ export default function DailyLoot({ refreshKey }) {
 
             {obstacles.length > 0 && (
               <div>
-                <h3 className="mb-2 text-sm font-semibold">Obstacles cleared</h3>
+                <h3 className="mb-2 text-sm font-semibold">Aşılan engeller</h3>
                 <ul className="grid gap-2 sm:grid-cols-2">
                   {obstacles.map(({ icon: Icon, text }) => (
-                    <li key={text} className="shine relative flex items-center gap-2.5 overflow-hidden rounded-[10px] bg-gradient-to-r from-amber-soft to-emerald-soft px-3 py-2.5 text-sm font-medium">
+                    <li key={text} className="shine relative flex items-center gap-2.5 overflow-hidden rounded-[10px] border border-line bg-emerald-soft px-3 py-2.5 text-sm font-medium">
                       <Icon size={18} weight="fill" className="text-amber" /> {text}
                     </li>
                   ))}
@@ -114,11 +115,11 @@ export default function DailyLoot({ refreshKey }) {
             {loot.words.length > 0 && (
               <div>
                 <h3 className="mb-2 flex items-center gap-1.5 text-sm font-semibold">
-                  <BookmarkSimple size={15} className="text-indigo" /> New words ({loot.words.length})
+                  <BookmarkSimple size={15} className="text-indigo" /> Yeni kelimeler ({loot.words.length})
                 </h3>
                 <ul className="flex flex-wrap gap-x-4 gap-y-1">
                   {loot.words.map((w) => (
-                    <li key={w.original} className="font-serif text-[17px]">
+                    <li key={w.original} className="text-[16px] font-medium">
                       {w.original}
                       {(w.meaning || w.upgraded) && <span className="ml-1.5 font-sans text-xs text-ink-3">{w.meaning || `→ ${w.upgraded}`}</span>}
                     </li>

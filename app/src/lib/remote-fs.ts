@@ -29,9 +29,9 @@ export async function call<T = any>(action: string, body?: unknown, query: Recor
   const data = await res.json().catch(() => null);
   if (!res.ok) {
     if (res.status === 401 && data?.locked) window.dispatchEvent(new Event('lumos:locked'));
-    throw new ApiError(data?.error ?? (res.status === 404 ? 'api.php was not found next to index.html' : `Request failed (${res.status})`), res.status, Boolean(data?.locked));
+    throw new ApiError(data?.error ?? (res.status === 404 ? 'api.php, index.html ile aynı klasörde bulunamadı' : `İstek başarısız (${res.status})`), res.status, Boolean(data?.locked));
   }
-  if (data === null) throw new ApiError('api.php did not answer with JSON. Is PHP enabled on the host?', res.status);
+  if (data === null) throw new ApiError('api.php JSON yanıtı vermedi. Sunucuda PHP etkin mi?', res.status);
   return data as T;
 }
 

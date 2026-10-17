@@ -47,7 +47,7 @@ function body(): array
     $raw = file_get_contents('php://input', false, null, 0, 4 * MAX_FILE_BYTES);
     $data = json_decode((string) $raw, true);
     if (!is_array($data)) {
-        fail('Request body must be JSON', 400);
+        fail('İstek gövdesi JSON olmalı.', 400);
     }
     return $data;
 }
@@ -161,7 +161,7 @@ function clear_failures(): void
 
 function locked_message(int $wait): string
 {
-    return 'Too many attempts. Try again in ' . max(1, (int) ceil($wait / 60)) . ' min.';
+    return 'Çok fazla deneme. ' . max(1, (int) ceil($wait / 60)) . ' dakika sonra tekrar deneyin.';
 }
 
 // ---------- data folder ----------
@@ -170,7 +170,7 @@ function locked_message(int $wait): string
 function ensure_data_dir(): void
 {
     if (!is_dir(DATA_DIR . '/sessions') && !@mkdir(DATA_DIR . '/sessions', 0755, true) && !is_dir(DATA_DIR . '/sessions')) {
-        fail('Cannot create the data folder. Give the web server write access to ' . basename(DATA_DIR) . '/.', 500);
+        fail('Veri klasörü oluşturulamadı. Web sunucusuna ' . basename(DATA_DIR) . '/ klasörü için yazma izni verin.', 500);
     }
     if (!file_exists(DATA_DIR . '/.htaccess')) {
         @file_put_contents(DATA_DIR . '/.htaccess', "<IfModule mod_authz_core.c>\n  Require all denied\n</IfModule>\n<IfModule !mod_authz_core.c>\n  Order allow,deny\n  Deny from all\n</IfModule>\n");
@@ -187,7 +187,7 @@ function ensure_data_dir(): void
         }
     }
     if (!file_exists(DATA_DIR . '/profile.json')) {
-        fail('profile.json is missing in the data folder and there is no data-seed/ to start from.', 500);
+        fail('Veri klasöründe profile.json yok. data/ klasörünü yükleyin.', 500);
     }
 }
 
@@ -201,7 +201,7 @@ function write_atomic(string $path, string $content): void
     $tmp = $path . '.' . bin2hex(random_bytes(4)) . '.tmp';
     if (file_put_contents($tmp, $content, LOCK_EX) === false || !rename($tmp, $path)) {
         @unlink($tmp);
-        fail('Could not write ' . basename($path) . '. Check folder permissions.', 500);
+        fail(basename($path) . ' yazılamadı. Klasör izinlerini kontrol edin.', 500);
     }
 }
 
@@ -270,15 +270,15 @@ function gemini_error(int $status, string $body): string
 {
     $msg = json_decode($body, true)['error']['message'] ?? '';
     if (($status === 400 && stripos($msg, 'API key') !== false) || $status === 403) {
-        return 'Gemini rejected the API key';
+        return 'Gemini API anahtarını kabul etmedi';
     }
     if ($status === 404) {
-        return 'Gemini model "' . GEMINI_MODEL . '" was not found. Set GEMINI_MODEL in .env';
+        return 'Gemini modeli "' . GEMINI_MODEL . '" bulunamadı. .env içindeki GEMINI_MODEL değerini düzeltin';
     }
     if ($status === 429) {
-        return 'Gemini rate limit reached. Try again in a minute';
+        return 'Gemini kullanım sınırına ulaşıldı. Bir dakika sonra tekrar deneyin';
     }
-    return 'Gemini error (' . ($status ?: 'no connection') . ')' . ($msg ? ': ' . $msg : '');
+    return 'Gemini hatası (' . ($status ?: 'bağlantı yok') . ')' . ($msg ? ': ' . $msg : '');
 }
 
 function candidate_text(array $data): string
@@ -314,11 +314,11 @@ $action = (string) ($_GET['action'] ?? '');
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 
 if (APP_SECRET_PIN === '') {
-    fail('APP_SECRET_PIN is not set. Create the .env file next to api.php (see .env.example).', 503);
+    fail('APP_SECRET_PIN tanımlı değil. api.php ile aynı klasörde .env dosyası oluşturun (.env.example dosyasına bakın).', 503);
 }
 // Cross-site requests cannot send this header without a CORS preflight, which this API never allows.
 if ($method === 'POST' && ($_SERVER['HTTP_X_REQUESTED_WITH'] ?? '') !== 'lumos') {
-    fail('Forbidden', 403);
+    fail('Erişim reddedildi.', 403);
 }
 
 ensure_data_dir();
@@ -336,7 +336,7 @@ if ($action === 'verify' && $method === 'POST') {
     $pin = body()['pin'] ?? '';
     if (!is_string($pin) || $pin === '' || !hash_equals(APP_SECRET_PIN, $pin)) {
         $wait = record_failure();
-        fail($wait !== null ? locked_message($wait) : 'Wrong PIN.', $wait !== null ? 429 : 401);
+        fail($wait !== null ? locked_message($wait) : 'PIN hatalı.', $wait !== null ? 429 : 401);
     }
     clear_failures();
     $expires = time() + SESSION_DAYS * 86400;
@@ -350,7 +350,7 @@ if ($action === 'logout' && $method === 'POST') {
 }
 
 if (!is_authenticated()) {
-    fail('Locked', 401, ['locked' => true]);
+    fail('Oturum kapalı.', 401, ['locked' => true]);
 }
 
 switch ($action) {
@@ -364,11 +364,11 @@ switch ($action) {
     case 'get_session':
         $date = (string) ($_GET['date'] ?? '');
         if (!preg_match(DATE_RE, $date)) {
-            fail('Invalid date', 400);
+            fail('Geçersiz tarih.', 400);
         }
         $path = DATA_DIR . "/sessions/$date.md";
         if (!is_file($path)) {
-            fail('Session not found', 404);
+            fail('Oturum kaydı bulunamadı.', 404);
         }
         out(['date' => $date, 'content' => (string) file_get_contents($path)]);
 
@@ -398,7 +398,7 @@ switch ($action) {
         $version = current_version();
         if ((int) ($req['version'] ?? -1) !== $version) {
             flock($lock, LOCK_UN);
-            fail('The files were changed from another device. Reload and try again.', 409, ['version' => $version]);
+            fail('Dosyalar başka bir cihazdan değiştirildi. Sayfayı yenileyip tekrar deneyin.', 409, ['version' => $version]);
         }
         daily_backup();
         foreach ($files as $name => $content) {
@@ -413,7 +413,7 @@ switch ($action) {
             fail('Use POST', 405);
         }
         if (GEMINI_API_KEY === '') {
-            fail('GEMINI_API_KEY is not set', 503);
+            fail('GEMINI_API_KEY tanımlı değil.', 503);
         }
         $req = body();
         $prompt = is_string($req['prompt'] ?? null) ? mb_substr($req['prompt'], 0, 20000) : '';
@@ -447,7 +447,7 @@ switch ($action) {
         $data = json_decode($res, true) ?: [];
         $text = candidate_text($data);
         if ($text === '') {
-            fail('Gemini returned no answer (' . ($data['candidates'][0]['finishReason'] ?? $data['promptFeedback']['blockReason'] ?? 'empty') . ')', 502);
+            fail('Gemini yanıt vermedi (' . ($data['candidates'][0]['finishReason'] ?? $data['promptFeedback']['blockReason'] ?? 'boş') . ')', 502);
         }
         out(['text' => $text, 'model' => $data['modelVersion'] ?? GEMINI_MODEL]);
 
@@ -456,7 +456,7 @@ switch ($action) {
             fail('Use POST', 405);
         }
         if (GEMINI_API_KEY === '') {
-            fail('The AI coach is offline: set GEMINI_API_KEY in .env on the server.', 503);
+            fail('Yapay zekâ koçu çevrimdışı: sunucudaki .env dosyasına GEMINI_API_KEY ekleyin.', 503);
         }
         $req = body();
         $contents = chat_contents(is_array($req['messages'] ?? null) ? $req['messages'] : []);
@@ -518,5 +518,5 @@ switch ($action) {
         exit;
 
     default:
-        fail('Unknown action', 404);
+        fail('Bilinmeyen işlem.', 404);
 }

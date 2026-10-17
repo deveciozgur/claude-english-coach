@@ -11,7 +11,7 @@ const escapeHtml = (s) => s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&l
 // Session logs contain the learner's own answers, so raw HTML is shown as text, never rendered.
 const marked = new Marked({ gfm: true, renderer: { html: ({ text }) => escapeHtml(text) } });
 
-const fmtDate = (d) => new Date(`${d}T12:00:00`).toLocaleDateString('en-GB', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+const fmtDate = (d) => new Date(`${d}T12:00:00`).toLocaleDateString('tr-TR', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
 
 export default function SessionsView({ refreshKey }) {
   const [dates, setDates] = useState(null);
@@ -40,8 +40,8 @@ export default function SessionsView({ refreshKey }) {
   return (
     <div className="space-y-7">
       <header className="max-w-2xl space-y-2">
-        <h1 className="font-serif text-4xl leading-[1.1] font-medium tracking-tight md:text-[44px]">Archive</h1>
-        <p className="text-[15px] leading-relaxed text-ink-2">One page per day. Every finished activity is written into that day&rsquo;s file in your sessions folder.</p>
+        <h1 className="text-[30px] leading-tight font-semibold tracking-[-0.03em]">Arşiv</h1>
+        <p className="text-[15px] leading-relaxed text-ink-2">Her gün için bir sayfa. Bitirdiğin her etkinlik o günün oturum dosyasına yazılır.</p>
       </header>
       {error && (
         <p className="text-sm text-brick" role="alert">
@@ -49,14 +49,14 @@ export default function SessionsView({ refreshKey }) {
         </p>
       )}
       <div className="grid gap-8 md:grid-cols-[200px_minmax(0,1fr)] md:gap-10">
-        <nav aria-label="Session days">
+        <nav aria-label="Oturum günleri">
           {dates === null ? (
             <div className="space-y-2">
               <Skeleton className="h-9 w-full" />
               <Skeleton className="h-9 w-full" />
             </div>
           ) : dates.length === 0 ? (
-            <p className="text-sm text-ink-3">No sessions yet.</p>
+            <p className="text-sm text-ink-3">Henüz oturum yok.</p>
           ) : (
             <ul className="flex gap-1 overflow-x-auto md:flex-col">
               {dates.map((d) => (
@@ -64,7 +64,7 @@ export default function SessionsView({ refreshKey }) {
                   <button
                     onClick={() => setSelected(d)}
                     aria-current={selected === d ? 'page' : undefined}
-                    className={`w-full rounded-full px-4 py-2 text-left text-sm whitespace-nowrap transition-colors ${selected === d ? 'bg-ink text-paper' : 'text-ink-2 hover:bg-sunk hover:text-ink'}`}
+                    className={`w-full rounded-full px-4 py-2 text-left text-sm whitespace-nowrap transition-colors ${selected === d ? 'bg-ink text-paper' : 'text-ink-2 hover:bg-hover hover:text-ink'}`}
                   >
                     {fmtDate(d)}
                   </button>
@@ -88,7 +88,7 @@ export default function SessionsView({ refreshKey }) {
               <Skeleton className="h-4 w-5/6" />
             </div>
           ) : (
-            <p className="text-ink-3">Choose a day.</p>
+            <p className="text-ink-3">Bir gün seç.</p>
           )}
         </Panel>
       </div>

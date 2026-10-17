@@ -6,6 +6,10 @@ import { Coffee, ArrowRight, ArrowCounterClockwise, GameController, Airplane, Cp
 import { api } from '@/api';
 import { Button, Panel } from './ui';
 import { WinsBurst } from './momentum';
+import { themeTr } from '@/lib/tr';
+
+// mode_reason is stored in English in profile.json; shown in Turkish.
+const REASON_TR = (r: string) => (/tough rounds/.test(r) ? `art arda ${parseInt(r, 10) || 2} zorlu tur oldu` : /shorter/.test(r) ? 'cevapların kısalmaya başladı' : r);
 
 const ease = [0.16, 1, 0.3, 1] as const;
 export const THEME_ICONS = { Gaming: GameController, Travel: Airplane, Tech: Cpu, Culture: Palette, 'Daily life': House };
@@ -86,15 +90,15 @@ export default function QuickPlay({ profile, reason, onSaved, onExit }) {
   }
 
   return (
-    <Panel as="section" aria-label="Low-effort quick play" className="overflow-hidden">
-      <div className="flex flex-wrap items-center gap-3 border-b border-line bg-indigo-soft/40 px-6 py-4">
+    <Panel as="section" aria-label="Hafif mod hızlı tur" className="overflow-hidden">
+      <div className="flex flex-wrap items-center gap-3 border-b border-line bg-indigo-soft px-6 py-4">
         <Coffee size={20} className="text-indigo" />
         <div className="min-w-0 flex-1">
-          <h2 className="text-sm font-semibold">Low-Effort Mode</h2>
-          <p className="text-[13px] text-ink-2">{reason ? `Switched on because ${reason}. ` : ''}Light, tap-only rounds. Every round still counts for your streak and XP.</p>
+          <h2 className="text-sm font-semibold">Hafif Mod (Low-Effort Mode)</h2>
+          <p className="text-[13px] text-ink-2">{reason ? `Açıldı, çünkü ${REASON_TR(reason)}. ` : ''}Sadece dokunmalı, hafif turlar. Her tur seriye ve XP'ye yine sayılır.</p>
         </div>
         <Button variant="secondary" size="sm" onClick={onExit}>
-          Back to full practice <ArrowRight size={14} />
+          Tam çalışmaya dön <ArrowRight size={14} />
         </Button>
       </div>
 
@@ -107,12 +111,12 @@ export default function QuickPlay({ profile, reason, onSaved, onExit }) {
                   const Icon = THEME_ICONS[round[i].theme];
                   return <Icon size={15} />;
                 })()}
-                {round[i].theme}
+                {themeTr(round[i].theme)}
                 <span className="ml-auto font-mono">
                   {i + 1} / {round.length}
                 </span>
               </div>
-              <p className="font-serif text-[28px] leading-snug">
+              <p className="text-[26px] leading-snug font-medium tracking-[-0.02em]">
                 {round[i].text.split('___').map((part, k, arr) => (
                   <span key={k}>
                     {part}
@@ -132,28 +136,28 @@ export default function QuickPlay({ profile, reason, onSaved, onExit }) {
                       key={o}
                       onClick={() => pick(idx)}
                       disabled={picked !== null}
-                      className={`h-12 rounded-full border border-line-strong px-6 font-serif text-lg transition-colors hover:border-ink ${state}`}
+                      className={`h-12 rounded-full border border-line-strong bg-sunk/50 px-6 text-lg transition-colors hover:border-ink-3 ${state}`}
                     >
                       {o}
                     </button>
                   );
                 })}
               </div>
-              {picked !== null && picked !== round[i].answer && <p className="text-sm text-ink-2">Close! It&rsquo;s &ldquo;{round[i].options[round[i].answer]}&rdquo;. You will see it again.</p>}
+              {picked !== null && picked !== round[i].answer && <p className="text-sm text-ink-2">Çok yakındın! Doğrusu &ldquo;{round[i].options[round[i].answer]}&rdquo;. Bunu yeniden göreceksin.</p>}
             </motion.div>
           </AnimatePresence>
         ) : (
           <div className="space-y-5">
-            <p className="font-serif text-2xl font-medium">
-              {correct} of {round.length}. {correct >= 4 ? 'You are on fire.' : correct >= 2 ? 'Nice and easy. That counts.' : 'You showed up, and that is what builds the habit.'}
+            <p className="text-2xl font-semibold tracking-[-0.02em]">
+              {correct} / {round.length}. {correct >= 4 ? 'Harika gidiyorsun.' : correct >= 2 ? 'Rahat ve sakin. Bu da sayılır.' : 'Buradaydın; alışkanlığı kuran da bu.'}
             </p>
             {result && <WinsBurst motivation={result.motivation} />}
             <div className="flex flex-wrap gap-2">
               <Button onClick={again}>
-                <ArrowCounterClockwise size={16} /> Another round
+                <ArrowCounterClockwise size={16} /> Bir tur daha
               </Button>
               <Button variant="secondary" onClick={onExit}>
-                Back to full practice
+                Tam çalışmaya dön
               </Button>
             </div>
           </div>
